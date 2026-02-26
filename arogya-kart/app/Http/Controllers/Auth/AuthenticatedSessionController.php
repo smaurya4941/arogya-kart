@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use App\Enums\UserRole;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -28,8 +29,18 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->to($this->redirectTo());
     }
+
+    //redirect helper function
+    protected function redirectTo()
+{
+    return match(auth()->user()->role) {
+        UserRole::ADMIN => '/admin/dashboard',
+        UserRole::STAFF => '/staff/dashboard',
+        UserRole::CLIENT => '/client/dashboard',
+    };
+}
 
     /**
      * Destroy an authenticated session.

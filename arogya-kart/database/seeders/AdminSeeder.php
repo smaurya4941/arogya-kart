@@ -14,7 +14,7 @@ class AdminSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        //creating a default admin user
         User::create([
             'name' => 'Admin',
             'email' => 'admin@arogyakart.com',
