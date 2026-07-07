@@ -33,12 +33,16 @@ class AuthenticatedSessionController extends Controller
     }
 
     //redirect helper function
-    protected function redirectTo()
+    protected function redirectTo(): string
 {
-    return match(auth()->user()->role) {
+    $role = auth()->user()->role;
+    $role = $role instanceof UserRole ? $role : ($role !== null ? UserRole::tryFrom($role) : null);
+
+    return match($role) {
         UserRole::ADMIN => '/admin/dashboard',
         UserRole::STAFF => '/staff/dashboard',
         UserRole::CLIENT => '/client/dashboard',
+        default => '/dashboard',
     };
 }
 

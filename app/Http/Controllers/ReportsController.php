@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\GenerateGstPdfJob;
+use App\Jobs\GeneratePurchasesPdfJob;
+use App\Jobs\GenerateSalesPdfJob;
 use App\Services\ReportService;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ReportsController extends Controller
 {
@@ -34,16 +37,10 @@ class ReportsController extends Controller
         $this->authorizeReports();
         [$start, $end] = $this->range($request);
 
-        $summary = $this->reports->salesReport($start, $end);
-        $sales = $this->reports->salesQuery($start, $end)->get();
+        GenerateSalesPdfJob::dispatch(auth()->id(), $start->toDateString(), $end->toDateString());
 
-        return Pdf::loadView('admin.reports.pdf.sales', [
-            'sales' => $sales,
-            'summary' => $summary,
-            'start' => $start,
-            'end' => $end,
-            'pharmacy' => optional(auth()->user())->pharmacy,
-        ])->download('sales-report-'.$start->format('Ymd').'-'.$end->format('Ymd').'.pdf');
+        return redirect()->route('admin.reports.sales')
+            ->with('success', '📄 Your Sales PDF is being generated. We\'ll notify you when it\'s ready to download.');
     }
 
     /*
@@ -68,16 +65,10 @@ class ReportsController extends Controller
         $this->authorizeReports();
         [$start, $end] = $this->range($request);
 
-        $summary = $this->reports->purchasesReport($start, $end);
-        $purchases = $this->reports->purchasesQuery($start, $end)->get();
+        GeneratePurchasesPdfJob::dispatch(auth()->id(), $start->toDateString(), $end->toDateString());
 
-        return Pdf::loadView('admin.reports.pdf.purchases', [
-            'purchases' => $purchases,
-            'summary' => $summary,
-            'start' => $start,
-            'end' => $end,
-            'pharmacy' => optional(auth()->user())->pharmacy,
-        ])->download('purchases-report-'.$start->format('Ymd').'-'.$end->format('Ymd').'.pdf');
+        return redirect()->route('admin.reports.purchases')
+            ->with('success', '📄 Your Purchases PDF is being generated. We\'ll notify you when it\'s ready to download.');
     }
 
     /*
@@ -117,14 +108,31 @@ class ReportsController extends Controller
         $this->authorizeReports();
         [$start, $end] = $this->range($request);
 
-        $gst = $this->reports->gstReport($start, $end);
+        GenerateGstPdfJob::dispatch(auth()->id(), $start->toDateString(), $end->toDateString());
 
-        return Pdf::loadView('admin.reports.pdf.gst', [
-            'gst' => $gst,
-            'start' => $start,
-            'end' => $end,
-            'pharmacy' => optional(auth()->user())->pharmacy,
-        ])->download('gst-report-'.$start->format('Ymd').'-'.$end->format('Ymd').'.pdf');
+        return redirect()->route('admin.reports.gst')
+            ->with('success', '📄 Your GST Report PDF is being generated. We\'ll notify you when it\'s ready to download.');
+    }
+
+    /**
+     * Serve a generated PDF export from storage.
+     *
+     * The filename is validated to prevent path traversal; only .pdf files
+     * inside the exports/ directory are served. Access is restricted to
+     * authenticated admin users.
+     */
+    public function download(string $filename)
+    {
+        abort_unless(auth()->check() && auth()->user()->isAdmin(), 403);
+
+        // Prevent path traversal — only allow alphanumeric, dash, underscore, dot
+        abort_if(!preg_match('/^[\w\-]+\.pdf$/i', $filename), 404);
+
+        $path = "exports/{$filename}";
+
+        abort_unless(Storage::disk('local')->exists($path), 404);
+
+        return Storage::disk('local')->download($path);
     }
 
     /*

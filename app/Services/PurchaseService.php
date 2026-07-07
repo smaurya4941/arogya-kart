@@ -18,7 +18,8 @@ use Illuminate\Support\Facades\DB;
 class PurchaseService
 {
     public function __construct(
-        private readonly AuditLogService $audit
+        private readonly AuditLogService $audit,
+        private readonly NumberSequenceService $sequences,
     ) {}
 
     /**
@@ -118,10 +119,9 @@ class PurchaseService
 
     private function generateInvoiceNumber(): string
     {
-        // PurchaseInvoice queries are pharmacy-scoped, so the count is per tenant.
-        $sequence = PurchaseInvoice::withoutGlobalScopes()
-            ->where('pharmacy_id', $this->currentPharmacyId())
-            ->count() + 1;
+        // Atomic per-tenant counter (see NumberSequenceService) — safe against
+        // concurrent goods-in. Runs inside createPurchase()'s transaction.
+        $sequence = $this->sequences->next($this->currentPharmacyId(), 'purchase');
 
         return 'PUR-' . now()->format('Ymd') . '-' . str_pad((string) $sequence, 4, '0', STR_PAD_LEFT);
     }

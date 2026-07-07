@@ -74,8 +74,8 @@ class DashboardController extends Controller
         $netProfit = $monthlyRevenue - $monthlyExpenses;
 
         // Recent Activities
-        $recentSales = Sale::latest()->take(5)->get();
-        $recentPurchases = PurchaseInvoice::latest()->take(5)->get();
+        $recentSales = Sale::with(['customer', 'cashier'])->latest()->take(5)->get();
+        $recentPurchases = PurchaseInvoice::with('supplier')->latest()->take(5)->get();
 
         return compact(
             'totalMedicinesCount',
@@ -102,9 +102,9 @@ class DashboardController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public static function cacheKey(int|string $pharmacyId): string
+    public static function cacheKey(int|string|null $pharmacyId): string
     {
-        return "dashboard.stats.pharmacy.{$pharmacyId}";
+        return 'dashboard.stats.pharmacy.' . ($pharmacyId ?? 'none');
     }
 
     /**

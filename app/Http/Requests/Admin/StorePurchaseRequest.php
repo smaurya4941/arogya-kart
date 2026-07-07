@@ -8,7 +8,9 @@ class StorePurchaseRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->check() && auth()->user()->isAdmin();
+        // Policy authorization (PurchasePolicy::create) is enforced in the controller.
+        // FormRequest only verifies authentication.
+        return auth()->check();
     }
 
     public function rules(): array

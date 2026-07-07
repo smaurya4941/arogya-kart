@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Enums\UserRole;
 
 class User extends Authenticatable
 {
@@ -23,6 +24,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
         'phone',
         'status',
         'pharmacy_id',
@@ -48,6 +50,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'role' => UserRole::class,
         ];
     }
 
@@ -58,16 +61,30 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->role === 'admin' || $this->hasRole('admin');
+        return $this->hasUserRole(UserRole::ADMIN);
     }
 
     public function isStaff(): bool
     {
-        return $this->role === 'staff' || $this->hasRole('staff');
+        return $this->hasUserRole(UserRole::STAFF);
     }
 
     public function isClient(): bool
     {
-        return $this->role === 'client' || $this->hasRole('client');
+        return $this->hasUserRole(UserRole::CLIENT);
+    }
+
+    /**
+     * Robust role check that works whether `role` is stored as the UserRole enum
+     * (via cast), a raw string, or granted through a Spatie role. Keeps the three
+     * boolean helpers above tolerant of legacy rows and mixed sources.
+     */
+    private function hasUserRole(UserRole $role): bool
+    {
+        $current = $this->role instanceof UserRole
+            ? $this->role
+            : (is_string($this->role) ? UserRole::tryFrom($this->role) : null);
+
+        return $current === $role || $this->hasRole($role->value);
     }
 }

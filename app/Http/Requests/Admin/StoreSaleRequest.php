@@ -8,7 +8,10 @@ class StoreSaleRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->check() && auth()->user()->isAdmin();
+        // Policy authorization (SalePolicy::create) is enforced in the controller
+        // via $this->authorize(). The FormRequest only needs to ensure the user
+        // is authenticated so staff members can submit POS bills.
+        return auth()->check();
     }
 
     public function rules(): array

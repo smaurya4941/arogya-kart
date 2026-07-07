@@ -19,7 +19,8 @@ use Illuminate\Validation\ValidationException;
 class SaleService
 {
     public function __construct(
-        private readonly AuditLogService $audit
+        private readonly AuditLogService $audit,
+        private readonly NumberSequenceService $sequences,
     ) {}
 
     /**
@@ -185,10 +186,9 @@ class SaleService
 
     private function generateInvoiceNumber(): string
     {
-        // Sale queries are pharmacy-scoped, so the count is per tenant.
-        $sequence = Sale::withoutGlobalScopes()
-            ->where('pharmacy_id', $this->currentPharmacyId())
-            ->count() + 1;
+        // Atomic per-tenant counter (see NumberSequenceService) — safe when two
+        // tills check out simultaneously. Runs inside createSale()'s transaction.
+        $sequence = $this->sequences->next($this->currentPharmacyId(), 'sale');
 
         return 'INV-' . now()->format('Ymd') . '-' . str_pad((string) $sequence, 4, '0', STR_PAD_LEFT);
     }

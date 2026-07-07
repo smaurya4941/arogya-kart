@@ -2,11 +2,25 @@
     <form method="POST" action="{{ route('register') }}">
         @csrf
 
-        <!-- Name -->
+        <!-- Pharmacy Name -->
         <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
+            <x-input-label for="pharmacy_name" :value="__('Pharmacy Name')" />
+            <x-text-input id="pharmacy_name" class="block mt-1 w-full" type="text" name="pharmacy_name" :value="old('pharmacy_name')" required autofocus autocomplete="organization" />
+            <x-input-error :messages="$errors->get('pharmacy_name')" class="mt-2" />
+        </div>
+
+        <!-- Owner Name -->
+        <div class="mt-4">
+            <x-input-label for="name" :value="__('Your Name')" />
+            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autocomplete="name" />
             <x-input-error :messages="$errors->get('name')" class="mt-2" />
+        </div>
+
+        <!-- Phone -->
+        <div class="mt-4">
+            <x-input-label for="phone" :value="__('Phone (optional)')" />
+            <x-text-input id="phone" class="block mt-1 w-full" type="text" name="phone" :value="old('phone')" autocomplete="tel" />
+            <x-input-error :messages="$errors->get('phone')" class="mt-2" />
         </div>
 
         <!-- Email Address -->

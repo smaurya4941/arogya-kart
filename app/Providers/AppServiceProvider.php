@@ -22,6 +22,7 @@ use App\Policies\CustomerPolicy;
 use App\Policies\ExpensePolicy;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Blade;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -46,5 +47,30 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Sale::class, SalePolicy::class);
         Gate::policy(Customer::class, CustomerPolicy::class);
         Gate::policy(Expense::class, ExpensePolicy::class);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Blade Helpers
+        |--------------------------------------------------------------------------
+        */
+
+        /**
+         * @currency(1234.5)  → ₹1,234.50
+         *
+         * Formats a monetary value using the pharmacy currency symbol and
+         * two decimal places. Safe to use directly in Blade templates.
+         */
+        Blade::directive('currency', function (string $expression): string {
+            return "<?php echo config('pharmacy.currency_symbol') . number_format({$expression}, 2); ?>";
+        });
+
+        /**
+         * @pharmacyDate($dateValue)  → 07 Jul 2026
+         *
+         * Formats a Carbon/date value using the configured pharmacy date format.
+         */
+        Blade::directive('pharmacyDate', function (string $expression): string {
+            return "<?php echo \Carbon\Carbon::parse({$expression})->format(config('pharmacy.date_format', 'd M Y')); ?>";
+        });
     }
 }

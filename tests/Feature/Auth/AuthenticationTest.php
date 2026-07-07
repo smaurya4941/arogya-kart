@@ -19,7 +19,8 @@ class AuthenticationTest extends TestCase
 
     public function test_users_can_authenticate_using_the_login_screen(): void
     {
-        $user = User::factory()->create();
+        // Login redirects by role (see AuthenticatedSessionController::redirectTo).
+        $user = User::factory()->create(['role' => \App\Enums\UserRole::ADMIN]);
 
         $response = $this->post('/login', [
             'email' => $user->email,
@@ -27,7 +28,7 @@ class AuthenticationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertRedirect('/admin/dashboard');
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void

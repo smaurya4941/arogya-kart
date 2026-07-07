@@ -21,6 +21,13 @@ class Product extends Model
         'description',
         'drug_type',
         'image_path',
+        'min_stock_alert',  // threshold for low-stock notifications (DashboardController + scheduler)
+        'is_active',
+    ];
+
+    protected $casts = [
+        'min_stock_alert' => 'integer',
+        'is_active'       => 'boolean',
     ];
 
     /*

@@ -58,6 +58,8 @@ Route::middleware(['auth', 'role:admin'])
             Route::get('/gst', [\App\Http\Controllers\ReportsController::class, 'gst'])->name('gst');
             Route::get('/gst/pdf', [\App\Http\Controllers\ReportsController::class, 'gstPdf'])->name('gst.pdf');
             Route::get('/inventory', [\App\Http\Controllers\ReportsController::class, 'inventory'])->name('inventory');
+            // Secure download route for queued PDF exports (served from storage/app/exports/)
+            Route::get('/download/{filename}', [\App\Http\Controllers\ReportsController::class, 'download'])->name('download');
         });
 
         // Expenses (Phase C)
@@ -65,6 +67,7 @@ Route::middleware(['auth', 'role:admin'])
 
         // Notifications (Phase 12)
         Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+        Route::post('/notifications/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.readAll');
         Route::post('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
 
         // SaaS Subscriptions & Billing (Phase 14 & 15)

@@ -1,17 +1,10 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-bold text-3xl text-gray-900 dark:text-white leading-tight tracking-tight">
-                {{ __('Executive Dashboard') }}
-            </h2>
-            <div class="text-sm text-gray-500 dark:text-gray-400">
-                {{ now()->format('l, F j, Y') }}
-            </div>
-        </div>
-    </x-slot>
+@extends('layouts.app')
 
-    <div class="py-12 bg-gray-50 dark:bg-gray-900 min-h-screen">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
+@section('title', 'Executive Dashboard')
+@section('subtitle', now()->format('l, F j, Y'))
+
+@section('content')
+<div class="space-y-8">
 
             <!-- Section 1: Today's Sales -->
             <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl shadow-lg p-8 text-white relative overflow-hidden">
@@ -208,6 +201,5 @@
                 </div>
             </div>
 
-        </div>
-    </div>
-</x-app-layout>
+</div>
+@endsection

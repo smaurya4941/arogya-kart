@@ -8,10 +8,20 @@ class Pharmacy extends Model
 {
     protected $fillable = [
         'name',
+        'owner_name',
         'license',
+        'drug_license_number',
         'gst',
+        'pan_number',
         'email',
         'phone',
+        'address',
+        'city',
+        'state',
+        'pincode',
+        'logo_path',
+        'invoice_header',
+        'footer_text',
         'status',
     ];
 
