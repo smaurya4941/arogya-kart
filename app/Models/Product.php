@@ -17,11 +17,21 @@ class Product extends Model
         'category_id',
         'name',
         'sku',
+        'generic_name',
+        'unit_id',
+        'manufacturer_id',
+        'purchase_price',
+        'selling_price',
+        'tax_percentage',
+        'reorder_level',
+        'medicine_code',
+        'status',
         'barcode',
         'description',
         'drug_type',
+        'schedule_type',
         'image_path',
-        'min_stock_alert',  // threshold for low-stock notifications (DashboardController + scheduler)
+        'min_stock_alert',
         'is_active',
     ];
 

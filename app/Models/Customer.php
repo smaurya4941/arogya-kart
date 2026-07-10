@@ -17,10 +17,12 @@ class Customer extends Model
         'gender',
         'dob',
         'address',
+        'outstanding_balance',
     ];
 
     protected $casts = [
         'dob' => 'date',
+        'outstanding_balance' => 'decimal:2',
     ];
 
     /*
@@ -32,5 +34,10 @@ class Customer extends Model
     public function sales()
     {
         return $this->hasMany(Sale::class);
+    }
+
+    public function ledgers()
+    {
+        return $this->hasMany(CustomerLedger::class);
     }
 }

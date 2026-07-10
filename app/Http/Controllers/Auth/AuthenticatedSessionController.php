@@ -39,6 +39,7 @@ class AuthenticatedSessionController extends Controller
     $role = $role instanceof UserRole ? $role : ($role !== null ? UserRole::tryFrom($role) : null);
 
     return match($role) {
+        UserRole::SUPER_ADMIN => '/superadmin/dashboard',
         UserRole::ADMIN => '/admin/dashboard',
         UserRole::STAFF => '/staff/dashboard',
         UserRole::CLIENT => '/client/dashboard',

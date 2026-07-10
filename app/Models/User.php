@@ -59,6 +59,27 @@ class User extends Authenticatable
         return $this->belongsTo(Pharmacy::class);
     }
 
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasUserRole(UserRole::SUPER_ADMIN);
+    }
+
+    /**
+     * Central capability check for tenant operations. The pharmacy owner (and the
+     * platform owner) implicitly hold every capability within their scope; staff
+     * are granted specific abilities through their Spatie job-role permissions
+     * (e.g. 'create sale', 'view medicines'). Policies delegate here so the
+     * owner-vs-staff rule lives in exactly one place.
+     */
+    public function canDo(string $permission): bool
+    {
+        if ($this->isSuperAdmin() || $this->isAdmin()) {
+            return true;
+        }
+
+        return $this->hasPermissionTo($permission);
+    }
+
     public function isAdmin(): bool
     {
         return $this->hasUserRole(UserRole::ADMIN);

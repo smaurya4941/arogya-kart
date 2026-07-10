@@ -7,79 +7,58 @@
     $user = auth()->user();
 @endphp
 
-<header class="sticky top-0 z-20 border-b border-slate-200/80 bg-white/95 backdrop-blur">
-    <div class="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-        <div class="flex min-w-0 items-center gap-3">
-            <button
-                type="button"
-                class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 text-slate-600 lg:hidden"
-                @click="sidebarOpen = true"
-                aria-label="Open sidebar"
-            >
-                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4A1 1 0 013 5zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm1 4a1 1 0 100 2h12a1 1 0 100-2H4z" clip-rule="evenodd" />
-                </svg>
-            </button>
+<!-- TopNavBar -->
+<header class="sticky top-0 z-30 bg-white/70 dark:bg-on-background/70 backdrop-blur-xl border-b border-outline-variant/30 dark:border-outline/20 shadow-sm flex justify-between items-center h-16 px-4 sm:px-6">
+    <div class="flex items-center gap-4 lg:gap-6">
+        <!-- Mobile Menu Toggle -->
+        <button
+            type="button"
+            class="p-2 text-on-surface-variant hover:bg-surface-variant/20 rounded-full lg:hidden"
+            @click="sidebarOpen = true"
+            aria-label="Open sidebar"
+        >
+            <span class="material-symbols-outlined">menu</span>
+        </button>
 
-            <div class="min-w-0">
-                <h1 class="truncate text-xl font-semibold text-slate-900">{{ $title }}</h1>
-                @if ($subtitle)
-                    <p class="mt-1 truncate text-sm text-slate-500">{{ $subtitle }}</p>
-                @endif
-            </div>
+        <div class="relative hidden md:block">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+            <input class="bg-surface-container-low border-none rounded-full pl-10 pr-4 py-2 text-body-md w-64 focus:ring-2 focus:ring-primary/50 transition-all" placeholder="Search orders, meds, patients..." type="text"/>
         </div>
-
-        <div class="flex items-center gap-3 sm:gap-4">
-            @if (trim($slot))
-                <div class="hidden items-center gap-3 md:flex">
-                    {{ $slot }}
-                </div>
+        <nav class="hidden md:flex items-center gap-4 text-label-md font-label-md">
+            @if(trim($slot))
+                {{ $slot }}
             @endif
-
-            <div class="hidden text-right sm:block">
-                <p class="text-sm font-semibold text-slate-800">{{ $user?->name }}</p>
-                <p class="text-xs uppercase tracking-[0.25em] text-slate-500">{{ $user?->role?->value ?? 'user' }}</p>
-            </div>
-
-            {{-- Notification Bell --}}
-            @php $unread = auth()->user()?->unreadNotifications()->count() ?? 0; @endphp
-            <a href="{{ route('admin.notifications.index') }}"
-               class="relative inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
-               aria-label="Notifications">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
-                </svg>
-                @if ($unread > 0)
-                    <span class="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white">
-                        {{ $unread > 9 ? '9+' : $unread }}
-                    </span>
-                @endif
-            </a>
-
-            <a
-                href="{{ route('profile.edit') }}"
-                class="hidden rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-900 sm:inline-flex"
-            >
-                Profile
-            </a>
-
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button
-                    type="submit"
-                    class="inline-flex rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-                >
-                    Logout
-                </button>
-            </form>
+        </nav>
+        
+        <!-- Mobile Page Title -->
+        <div class="md:hidden">
+            <h1 class="truncate text-title-lg font-bold text-on-surface leading-tight">{{ $title }}</h1>
         </div>
     </div>
+    
+    <div class="flex items-center gap-2 sm:gap-4">
+        @php $unread = auth()->user()?->unreadNotifications()->count() ?? 0; @endphp
+        <a href="{{ route('admin.notifications.index') }}" class="p-2 text-on-surface-variant hover:bg-surface-variant/20 rounded-full relative inline-flex items-center justify-center">
+            <span class="material-symbols-outlined">notifications</span>
+            @if ($unread > 0)
+                <span class="absolute top-2 right-2 flex h-2 w-2 items-center justify-center rounded-full bg-error text-[8px] font-bold text-on-error border-2 border-white shadow-sm">
+                    {{ $unread > 9 ? '+' : '' }}
+                </span>
+            @endif
+        </a>
+        
+        <button class="hidden sm:inline-flex p-2 text-on-surface-variant hover:bg-surface-variant/20 rounded-full">
+            <span class="material-symbols-outlined">apps</span>
+        </button>
 
-    @if (trim($slot))
-        <div class="border-t border-slate-200 px-4 py-3 md:hidden">
-            <div class="mx-auto flex w-full max-w-7xl items-center gap-3">
-                {{ $slot }}
+        <a href="{{ route('profile.edit') }}" class="flex items-center gap-2 rounded-full border border-outline-variant/30 bg-surface-container-high p-1 pr-3 transition-colors hover:bg-surface-variant/30">
+            <div class="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold text-xs">
+                {{ substr($user?->name ?? 'U', 0, 1) }}
             </div>
-        </div>
-    @endif
+            <div class="hidden sm:flex flex-col text-left">
+                <span class="text-label-md font-bold leading-none mb-0.5 text-on-surface">{{ $user?->name }}</span>
+                <span class="text-[9px] uppercase tracking-wider text-on-surface-variant leading-none">{{ $user?->role?->value ?? 'user' }}</span>
+            </div>
+        </a>
+    </div>
 </header>

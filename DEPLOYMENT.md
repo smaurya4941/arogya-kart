@@ -116,8 +116,14 @@ DB_USERNAME=arogya
 DB_PASSWORD=CHANGE_THIS_PASSWORD
 
 SESSION_DRIVER=database
+SESSION_ENCRYPT=true                 # encrypt session payloads at rest
+SESSION_SECURE_COOKIE=true          # only send the session cookie over HTTPS
 CACHE_STORE=file                    # switch to redis if available
 QUEUE_CONNECTION=database           # switch to redis for better performance
+
+# Strong password for the seeded admin (php artisan db:seed --class=AdminSeeder).
+# Prefer having the pharmacist self-register instead of seeding.
+ADMIN_PASSWORD=CHANGE_THIS_STRONG_PASSWORD
 
 MAIL_MAILER=smtp
 MAIL_HOST=smtp.gmail.com

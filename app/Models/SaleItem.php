@@ -48,4 +48,29 @@ class SaleItem extends Model
     {
         return $this->belongsTo(ProductBatch::class, 'product_batch_id');
     }
+
+    public function returnItems()
+    {
+        return $this->hasMany(SaleReturnItem::class);
+    }
+
+    /** How many units of this line have already been returned. */
+    public function returnedQuantity(): int
+    {
+        return (int) ($this->relationLoaded('returnItems')
+            ? $this->returnItems->sum('quantity')
+            : $this->returnItems()->sum('quantity'));
+    }
+
+    /** How many units of this line can still be returned. */
+    public function returnableQuantity(): int
+    {
+        return max(0, (int) $this->quantity - $this->returnedQuantity());
+    }
+
+    /** Refund value of a single unit of this line (base + tax), for proration. */
+    public function unitRefundValue(): float
+    {
+        return $this->quantity > 0 ? round((float) $this->total / (int) $this->quantity, 2) : 0.0;
+    }
 }

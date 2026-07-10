@@ -23,6 +23,8 @@ class Sale extends Model
         'paid_amount',
         'due_amount',
         'payment_status',
+        'doctor_name',
+        'doctor_registration_number',
         'notes',
     ];
 
@@ -56,6 +58,23 @@ class Sale extends Model
     public function items()
     {
         return $this->hasMany(SaleItem::class);
+    }
+
+    public function returns()
+    {
+        return $this->hasMany(SaleReturn::class);
+    }
+
+    /** True when at least one line still has un-returned quantity. */
+    public function hasReturnableItems(): bool
+    {
+        return $this->items->contains(fn (SaleItem $item) => $item->returnableQuantity() > 0);
+    }
+
+    /** Total value refunded against this sale so far. */
+    public function totalRefunded(): float
+    {
+        return (float) $this->returns->sum('total_amount');
     }
 
     /*

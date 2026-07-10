@@ -27,7 +27,40 @@ class StoreSaleRequest extends FormRequest
             'items.*.product_id' => ['required', 'exists:products,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.discount_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'doctor_name' => ['nullable', 'string', 'max:255'],
+            'doctor_registration_number' => ['nullable', 'string', 'max:255'],
         ];
+    }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $items = $this->input('items', []);
+            if (!is_array($items) || empty($items)) {
+                return;
+            }
+
+            $productIds = collect($items)->pluck('product_id')->filter()->toArray();
+            if (empty($productIds)) {
+                return;
+            }
+
+            $hasRestrictedDrug = \App\Models\Product::whereIn('id', $productIds)
+                ->whereIn('schedule_type', ['H', 'H1', 'X'])
+                ->exists();
+
+            if ($hasRestrictedDrug) {
+                if (empty($this->input('customer_id'))) {
+                    $validator->errors()->add('customer_id', 'Customer profile is required when selling Schedule H/H1/X drugs.');
+                }
+                if (empty($this->input('doctor_name'))) {
+                    $validator->errors()->add('doctor_name', 'Doctor name is required when selling Schedule H/H1/X drugs.');
+                }
+                if (empty($this->input('doctor_registration_number'))) {
+                    $validator->errors()->add('doctor_registration_number', 'Doctor registration number is required when selling Schedule H/H1/X drugs.');
+                }
+            }
+        });
     }
 
     public function messages(): array

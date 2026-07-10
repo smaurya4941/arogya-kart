@@ -38,29 +38,30 @@ class RolePermissionSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrCreate(['name' => $permission]);
         }
 
-        // create roles and assign created permissions
+        // create roles and assign created permissions (idempotent so the seeder
+        // can be re-run during deploys without unique-constraint failures)
 
         // Cashier
-        $roleCashier = Role::create(['name' => 'Cashier']);
-        $roleCashier->givePermissionTo(['create sale', 'view sale']);
+        $roleCashier = Role::firstOrCreate(['name' => 'Cashier']);
+        $roleCashier->syncPermissions(['create sale', 'view sale']);
 
         // Pharmacist
-        $rolePharmacist = Role::create(['name' => 'Pharmacist']);
-        $rolePharmacist->givePermissionTo(['view medicines', 'create medicines', 'edit medicines', 'create sale', 'view sale', 'return sale']);
+        $rolePharmacist = Role::firstOrCreate(['name' => 'Pharmacist']);
+        $rolePharmacist->syncPermissions(['view medicines', 'create medicines', 'edit medicines', 'create sale', 'view sale', 'return sale']);
 
         // Pharmacy Owner
-        $roleOwner = Role::create(['name' => 'Pharmacy Owner']);
-        $roleOwner->givePermissionTo(Permission::all());
+        $roleOwner = Role::firstOrCreate(['name' => 'Pharmacy Owner']);
+        $roleOwner->syncPermissions(Permission::all());
 
         // Staff
-        $roleStaff = Role::create(['name' => 'Staff']);
-        $roleStaff->givePermissionTo(['view medicines', 'view sale']);
+        $roleStaff = Role::firstOrCreate(['name' => 'Staff']);
+        $roleStaff->syncPermissions(['view medicines', 'view sale']);
 
-        // Super Admin (Gets all permissions via Gate::before in AuthServiceProvider usually, but we can assign here or just use name)
-        $roleSuperAdmin = Role::create(['name' => 'Super Admin']);
-        // Super admin gets all by default in app logic
+        // Super Admin — platform owner; granted everything explicitly.
+        $roleSuperAdmin = Role::firstOrCreate(['name' => 'Super Admin']);
+        $roleSuperAdmin->syncPermissions(Permission::all());
     }
 }

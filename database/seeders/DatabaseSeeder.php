@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -12,14 +11,17 @@ class DatabaseSeeder extends Seeder
 
     /**
      * Seed the application's database.
+     *
+     * Order matters: Spatie roles/permissions and the plan catalogue must exist
+     * before any user or subscription references them.
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        $this->call([
+            RolePermissionSeeder::class,  // roles + permissions
+            PlanSeeder::class,            // global subscription catalogue
+            SuperAdminSeeder::class,      // platform owner (no tenant)
+            AdminSeeder::class,           // demo pharmacy + owner
         ]);
     }
 }

@@ -11,6 +11,7 @@ use App\Models\ProductBatch;
 use App\Models\Supplier;
 use App\Models\PurchaseInvoice;
 use App\Models\Sale;
+use App\Models\SaleReturn;
 use App\Models\Customer;
 use App\Models\Expense;
 use App\Policies\ProductPolicy;
@@ -18,11 +19,14 @@ use App\Policies\ProductBatchPolicy;
 use App\Policies\SupplierPolicy;
 use App\Policies\PurchasePolicy;
 use App\Policies\SalePolicy;
+use App\Policies\SaleReturnPolicy;
 use App\Policies\CustomerPolicy;
 use App\Policies\ExpensePolicy;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -40,11 +44,28 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        /*
+        |--------------------------------------------------------------------------
+        | Production Hardening
+        |--------------------------------------------------------------------------
+        | Only takes effect when APP_ENV=production, so local dev is unaffected.
+        */
+        if ($this->app->isProduction()) {
+            // Generate every URL/asset link over HTTPS and mark cookies secure,
+            // even when PHP sits behind a proxy that terminates TLS.
+            URL::forceScheme('https');
+
+            // Refuse migrate:fresh / db:wipe / migrate:refresh against live
+            // pharmacy data — an accidental run would erase real sales records.
+            DB::prohibitDestructiveCommands();
+        }
+
         Gate::policy(Product::class, ProductPolicy::class);
         Gate::policy(ProductBatch::class, ProductBatchPolicy::class);
         Gate::policy(Supplier::class, SupplierPolicy::class);
         Gate::policy(PurchaseInvoice::class, PurchasePolicy::class);
         Gate::policy(Sale::class, SalePolicy::class);
+        Gate::policy(SaleReturn::class, SaleReturnPolicy::class);
         Gate::policy(Customer::class, CustomerPolicy::class);
         Gate::policy(Expense::class, ExpensePolicy::class);
 

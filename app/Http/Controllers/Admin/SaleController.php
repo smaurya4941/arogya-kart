@@ -90,7 +90,7 @@ class SaleController extends Controller
     {
         $this->authorize('view', $sale);
 
-        $sale->load(['customer', 'cashier', 'items.product', 'items.batch']);
+        $sale->load(['customer', 'cashier', 'items.product', 'items.batch', 'items.returnItems', 'returns']);
 
         return view('admin.sales.show', compact('sale'));
     }

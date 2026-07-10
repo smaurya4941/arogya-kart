@@ -7,6 +7,8 @@ use App\Models\PurchaseInvoiceItem;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\StockMovement;
+use App\Models\CustomerLedger;
+use App\Models\Customer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -46,6 +48,8 @@ class SaleService
                 'paid_amount' => 0,
                 'due_amount' => 0,
                 'payment_status' => 'unpaid',
+                'doctor_name' => $data['doctor_name'] ?? null,
+                'doctor_registration_number' => $data['doctor_registration_number'] ?? null,
                 'notes' => $data['notes'] ?? null,
             ]);
 
@@ -75,6 +79,21 @@ class SaleService
                 'due_amount' => $due,
                 'payment_status' => $due <= 0 ? 'paid' : ($paid > 0 ? 'partial' : 'unpaid'),
             ]);
+
+            if ($due > 0 && $sale->customer_id) {
+                CustomerLedger::create([
+                    'pharmacy_id' => $sale->pharmacy_id,
+                    'customer_id' => $sale->customer_id,
+                    'type' => 'sale',
+                    'amount' => $due,
+                    'reference' => $sale->invoice_number,
+                    'date' => $sale->sale_date->toDateString(),
+                    'description' => "Credit purchase on invoice #{$sale->invoice_number}",
+                ]);
+
+                $customer = Customer::find($sale->customer_id);
+                $customer->increment('outstanding_balance', $due);
+            }
 
             return $sale;
         });

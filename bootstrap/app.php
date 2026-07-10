@@ -18,7 +18,15 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Role-based access middleware alias
         $middleware->alias([
-            'role' => App\Http\Middleware\RoleMiddleware::class,
+            'role'         => App\Http\Middleware\RoleMiddleware::class,
+            'subscription' => App\Http\Middleware\EnsureSubscriptionActive::class,
+        ]);
+
+        // Razorpay posts webhooks server-to-server with no CSRF token; it is
+        // authenticated instead by its X-Razorpay-Signature header (verified in
+        // the controller), so exempt just that endpoint from CSRF.
+        $middleware->validateCsrfTokens(except: [
+            'webhooks/razorpay',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

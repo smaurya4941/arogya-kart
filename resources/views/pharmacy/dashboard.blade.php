@@ -1,205 +1,218 @@
 @extends('layouts.app')
 
-@section('title', 'Executive Dashboard')
+@section('title', 'Operations Dashboard')
 @section('subtitle', now()->format('l, F j, Y'))
 
 @section('content')
 <div class="space-y-8">
+    <!-- Dashboard Header -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="text-primary font-bold">Today</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-outline-variant"></span>
+                <span class="text-on-surface-variant">{{ auth()->user()->pharmacy->name ?? 'City Wellness Pharmacy' }}</span>
+            </div>
+            <h2 class="font-headline-lg text-headline-lg text-on-surface">Operations Dashboard</h2>
+        </div>
+        <div class="flex flex-wrap gap-3">
+            <a href="{{ route('admin.pos.index') }}" class="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-outline-variant/30 rounded-xl font-bold text-primary shadow-sm hover:bg-surface-container-low transition-all active:scale-95">
+                <span class="material-symbols-outlined text-[20px]">receipt_long</span>
+                New Bill
+            </a>
+            <a href="{{ route('admin.products.create') }}" class="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-outline-variant/30 rounded-xl font-bold text-primary shadow-sm hover:bg-surface-container-low transition-all active:scale-95">
+                <span class="material-symbols-outlined text-[20px]">add_business</span>
+                Add Inventory
+            </a>
+            <a href="{{ route('admin.purchases.create') }}" class="flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-on-primary rounded-xl font-bold shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-95">
+                <span class="material-symbols-outlined text-[20px]">payments</span>
+                Purchase
+            </a>
+        </div>
+    </div>
 
-            <!-- Section 1: Today's Sales -->
-            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl shadow-lg p-8 text-white relative overflow-hidden">
-                <div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white opacity-10"></div>
-                <div class="relative z-10">
-                    <h3 class="text-lg font-medium text-blue-100 mb-2 uppercase tracking-wide">Today's Sales</h3>
-                    <div class="text-5xl font-extrabold mb-6">₹{{ number_format($todayRevenue, 2) }}</div>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                        <div>
-                            <p class="text-blue-200 text-sm">Invoices</p>
-                            <p class="text-2xl font-bold">{{ $todayInvoices }}</p>
-                        </div>
-                        <div>
-                            <p class="text-blue-200 text-sm">Items Sold</p>
-                            <p class="text-2xl font-bold">{{ $todayItemsSold }}</p>
-                        </div>
-                    </div>
+    <!-- Metric Cards Bento -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-widget-gap">
+        <!-- Sales Card -->
+        <div class="bg-white border border-outline-variant/30 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow group">
+            <div class="flex justify-between items-start mb-4">
+                <div class="p-3 bg-primary/10 text-primary rounded-xl group-hover:bg-primary group-hover:text-on-primary transition-colors">
+                    <span class="material-symbols-outlined">payments</span>
+                </div>
+                <span class="text-tertiary-container font-bold flex items-center gap-1 text-label-md">
+                    <span class="material-symbols-outlined text-[16px]">trending_up</span>
+                    {{ $todayInvoices ?? 0 }} Orders
+                </span>
+            </div>
+            <p class="text-on-surface-variant font-label-md uppercase tracking-wider mb-1">Today's Sales</p>
+            <h3 class="text-headline-md font-display-lg font-bold text-on-surface">${{ number_format($todayRevenue ?? 0, 2) }}</h3>
+        </div>
+
+        <!-- Low Stock Card -->
+        <div class="bg-white border border-outline-variant/30 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow group">
+            <div class="flex justify-between items-start mb-4">
+                <div class="p-3 bg-secondary/10 text-secondary rounded-xl group-hover:bg-secondary group-hover:text-on-primary transition-colors">
+                    <span class="material-symbols-outlined">inventory</span>
+                </div>
+                @if(($lowStockCount ?? 0) > 0)
+                    <span class="text-error font-bold flex items-center gap-1 text-label-md">Critical</span>
+                @else
+                    <span class="text-tertiary font-bold flex items-center gap-1 text-label-md">Optimal</span>
+                @endif
+            </div>
+            <p class="text-on-surface-variant font-label-md uppercase tracking-wider mb-1">Low Stock Items</p>
+            <h3 class="text-headline-md font-display-lg font-bold text-on-surface">{{ str_pad($lowStockCount ?? 0, 2, '0', STR_PAD_LEFT) }}</h3>
+        </div>
+
+        <!-- Expiring Soon Card -->
+        <div class="bg-white border border-outline-variant/30 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow group">
+            <div class="flex justify-between items-start mb-4">
+                <div class="p-3 bg-error-container/20 text-error rounded-xl group-hover:bg-error group-hover:text-on-primary transition-colors">
+                    <span class="material-symbols-outlined">event_busy</span>
+                </div>
+                <span class="text-on-surface-variant font-bold text-label-md">90 Days</span>
+            </div>
+            <p class="text-on-surface-variant font-label-md uppercase tracking-wider mb-1">Expiring Soon</p>
+            <h3 class="text-headline-md font-display-lg font-bold text-on-surface">{{ str_pad($expiringCount ?? 0, 2, '0', STR_PAD_LEFT) }}</h3>
+        </div>
+
+        <!-- Total Medicines Card -->
+        <div class="bg-white border border-outline-variant/30 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow group">
+            <div class="flex justify-between items-start mb-4">
+                <div class="p-3 bg-tertiary/10 text-tertiary rounded-xl group-hover:bg-tertiary group-hover:text-on-primary transition-colors">
+                    <span class="material-symbols-outlined">medication</span>
+                </div>
+                <span class="text-on-surface-variant font-bold text-label-md">Active: {{ $activeMedicines ?? 0 }}</span>
+            </div>
+            <p class="text-on-surface-variant font-label-md uppercase tracking-wider mb-1">Total Medicines</p>
+            <h3 class="text-headline-md font-display-lg font-bold text-on-surface">{{ str_pad($totalMedicinesCount ?? 0, 2, '0', STR_PAD_LEFT) }}</h3>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Grid -->
+    <div class="grid grid-cols-12 gap-widget-gap">
+        <!-- Sales Overview Chart (Column 8) -->
+        <div class="col-span-12 lg:col-span-8 bg-white border border-outline-variant/30 rounded-2xl p-6 shadow-sm">
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h4 class="font-title-lg text-title-lg text-on-surface">Sales Overview</h4>
+                    <p class="text-label-md text-on-surface-variant mt-1">Simulated weekly distribution</p>
+                </div>
+                <div class="flex gap-2 bg-surface-container-low p-1 rounded-lg">
+                    <button class="px-3 py-1 text-label-md rounded-md bg-white shadow-sm font-bold text-primary">Last 7 Days</button>
+                    <button class="px-3 py-1 text-label-md rounded-md text-on-surface-variant hover:bg-white/50 transition-colors">Month</button>
                 </div>
             </div>
-
-            <!-- Dashboard Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Section 2: Total Medicines -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-                    <div class="flex items-center justify-between mb-4">
-                        <h4 class="text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider text-sm">Total Medicines</h4>
-                        <span class="p-2 bg-indigo-100 text-indigo-600 rounded-lg dark:bg-indigo-900/50 dark:text-indigo-400">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                        </span>
+            <div class="h-64 flex items-end justify-between gap-2 sm:gap-4 px-0 sm:px-2">
+                <!-- Simulated Bar Chart -->
+                @php $heights = [60, 45, 75, 90, 55, 85, 100]; $days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']; @endphp
+                @foreach($heights as $i => $h)
+                <div class="flex-1 flex flex-col items-center gap-3">
+                    <div class="w-full bg-primary/20 rounded-t-lg relative group overflow-hidden" style="height: {{ $h }}%">
+                        <div class="absolute bottom-0 w-full bg-primary group-hover:h-full transition-all duration-500" style="height: 80%"></div>
                     </div>
-                    <div class="text-3xl font-extrabold text-gray-900 dark:text-white mb-4">{{ $totalMedicinesCount }}</div>
-                    <div class="flex justify-between text-sm">
-                        <span class="text-green-500 font-medium">{{ $activeMedicines }} Active</span>
-                        <span class="text-red-500 font-medium">{{ $inactiveMedicines }} Inactive</span>
-                    </div>
+                    <span class="text-[10px] sm:text-label-md font-label-md text-on-surface-variant">{{ $days[$i] }}</span>
                 </div>
+                @endforeach
+            </div>
+        </div>
 
-                <!-- Section 5: Financial Summary -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 md:col-span-2">
-                    <div class="flex items-center justify-between mb-6">
-                        <h4 class="text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider text-sm">Financial Summary (This Month)</h4>
-                    </div>
-                    <div class="grid grid-cols-3 gap-4">
-                        <div>
-                            <p class="text-gray-500 dark:text-gray-400 text-sm mb-1">Revenue</p>
-                            <p class="text-2xl font-bold text-gray-900 dark:text-white">₹{{ number_format($monthlyRevenue, 2) }}</p>
+        <!-- Critical Inventory Alerts (Column 4) -->
+        <div class="col-span-12 lg:col-span-4 bg-white border border-outline-variant/30 rounded-2xl p-6 shadow-sm overflow-hidden flex flex-col">
+            <div class="flex items-center justify-between mb-6">
+                <h4 class="font-title-lg text-title-lg text-on-surface">Critical Inventory</h4>
+                @if(count($lowStockMedicines ?? []) > 0 || count($expiringMedicines ?? []) > 0)
+                    <span class="px-2 py-0.5 bg-error-container text-on-error-container text-[10px] font-black rounded uppercase">Urgent</span>
+                @else
+                    <span class="px-2 py-0.5 bg-tertiary-container/20 text-tertiary text-[10px] font-black rounded uppercase">Clear</span>
+                @endif
+            </div>
+            <div class="space-y-4 overflow-y-auto pr-1 flex-1">
+                @forelse(collect($expiringMedicines ?? [])->take(2) as $batch)
+                    <div class="flex items-center gap-4 p-3 bg-surface-container-low rounded-xl border border-outline-variant/10">
+                        <div class="w-10 h-10 rounded-lg bg-error-container/20 flex items-center justify-center text-error flex-shrink-0">
+                            <span class="material-symbols-outlined">event_busy</span>
                         </div>
-                        <div>
-                            <p class="text-gray-500 dark:text-gray-400 text-sm mb-1">Expenses</p>
-                            <p class="text-2xl font-bold text-gray-900 dark:text-white">₹{{ number_format($monthlyExpenses, 2) }}</p>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-body-md font-bold text-on-surface truncate">{{ $batch->product->name }}</p>
+                            <p class="text-label-md text-on-surface-variant">Expiring {{ \Carbon\Carbon::parse($batch->expiry_date)->diffForHumans() }}</p>
                         </div>
-                        <div>
-                            <p class="text-gray-500 dark:text-gray-400 text-sm mb-1">Net Profit</p>
-                            <p class="text-2xl font-bold {{ $netProfit >= 0 ? 'text-green-500' : 'text-red-500' }}">₹{{ number_format($netProfit, 2) }}</p>
+                        <span class="text-error font-mono-data">{{ $batch->quantity }}</span>
+                    </div>
+                @empty
+                @endforelse
+
+                @forelse(collect($lowStockMedicines ?? [])->take(3) as $med)
+                    <div class="flex items-center gap-4 p-3 bg-surface-container-low rounded-xl border border-outline-variant/10">
+                        <div class="w-10 h-10 rounded-lg bg-tertiary-container/10 flex items-center justify-center text-tertiary flex-shrink-0">
+                            <span class="material-symbols-outlined">warning</span>
                         </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-body-md font-bold text-on-surface truncate">{{ $med->name }}</p>
+                            <p class="text-label-md text-on-surface-variant">Below reorder level</p>
+                        </div>
+                        <span class="text-secondary font-mono-data">{{ $med->total_stock }}</span>
                     </div>
-                </div>
+                @empty
+                    @if(count($expiringMedicines ?? []) === 0)
+                        <div class="flex flex-col items-center justify-center h-full text-outline-variant py-8">
+                            <span class="material-symbols-outlined text-[48px] mb-2 opacity-50">check_circle</span>
+                            <p class="text-body-md font-medium text-center">No critical inventory alerts.</p>
+                        </div>
+                    @endif
+                @endforelse
             </div>
+            <a href="{{ route('admin.products.index') }}" class="block w-full mt-6 py-3 text-primary font-bold text-body-md text-center bg-primary/5 hover:bg-primary/10 rounded-xl transition-colors">
+                View Inventory
+            </a>
+        </div>
 
-            <!-- Alerts & Issues -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Section 3: Low Stock Medicines -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-                    <div class="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
-                        <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center">
-                            <span class="w-3 h-3 rounded-full bg-orange-500 mr-2"></span>
-                            Low Stock Alerts ({{ $lowStockCount }})
-                        </h3>
-                        <a href="#" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">View All</a>
-                    </div>
-                    <div class="p-0">
-                        @if($lowStockCount > 0)
-                            <ul class="divide-y divide-gray-100 dark:divide-gray-700 max-h-64 overflow-y-auto">
-                                @foreach($lowStockMedicines->take(5) as $medicine)
-                                <li class="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors flex justify-between items-center">
-                                    <div>
-                                        <p class="font-medium text-gray-900 dark:text-white">{{ $medicine->name }}</p>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400">Min Req: {{ $medicine->min_stock_alert }}</p>
-                                    </div>
-                                    <div class="text-right">
-                                        <p class="font-bold text-orange-500">{{ $medicine->total_stock }}</p>
-                                        <p class="text-xs text-gray-500 uppercase">In Stock</p>
-                                    </div>
-                                </li>
-                                @endforeach
-                            </ul>
-                        @else
-                            <div class="p-8 text-center text-gray-500 dark:text-gray-400">
-                                <svg class="w-12 h-12 mx-auto text-green-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                <p>All medicines are sufficiently stocked.</p>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-
-                <!-- Section 4: Expiring Medicines -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-                    <div class="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
-                        <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center">
-                            <span class="w-3 h-3 rounded-full bg-red-500 mr-2"></span>
-                            Expiring Soon ({{ $expiringCount }})
-                        </h3>
-                        <a href="#" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">View All</a>
-                    </div>
-                    <div class="p-0">
-                        @if($expiringCount > 0)
-                            <ul class="divide-y divide-gray-100 dark:divide-gray-700 max-h-64 overflow-y-auto">
-                                @foreach($expiringMedicines->take(5) as $batch)
-                                @php
-                                    $daysLeft = now()->diffInDays($batch->expiry_date, false);
-                                    $textColor = $daysLeft < 30 ? 'text-red-500' : 'text-orange-500';
-                                @endphp
-                                <li class="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors flex justify-between items-center">
-                                    <div>
-                                        <p class="font-medium text-gray-900 dark:text-white">{{ $batch->product->name ?? 'Unknown' }} <span class="text-xs bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded text-gray-600 dark:text-gray-300 ml-2">Batch: {{ $batch->batch_number }}</span></p>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400">Qty: {{ $batch->quantity }}</p>
-                                    </div>
-                                    <div class="text-right">
-                                        <p class="font-bold {{ $textColor }}">{{ ceil($daysLeft) }} Days</p>
-                                        <p class="text-xs text-gray-500 uppercase">Remaining</p>
-                                    </div>
-                                </li>
-                                @endforeach
-                            </ul>
-                        @else
-                            <div class="p-8 text-center text-gray-500 dark:text-gray-400">
-                                <svg class="w-12 h-12 mx-auto text-green-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                <p>No medicines are expiring soon.</p>
-                            </div>
-                        @endif
-                    </div>
-                </div>
+        <!-- Recent Invoices Table (Full Width) -->
+        <div class="col-span-12 bg-white border border-outline-variant/30 rounded-2xl shadow-sm overflow-hidden">
+            <div class="px-6 py-5 border-b border-outline-variant/20 flex justify-between items-center bg-surface-container-lowest">
+                <h4 class="font-title-lg text-title-lg text-on-surface">Recent Sales</h4>
+                <a href="{{ route('admin.sales.index') }}" class="text-primary font-bold text-body-md hover:underline">View All</a>
             </div>
-
-            <!-- Section 6: Recent Activities -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-                <div class="p-6 border-b border-gray-100 dark:border-gray-700">
-                    <h3 class="text-lg font-bold text-gray-900 dark:text-white">Recent Activities</h3>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-100 dark:divide-gray-700">
-                    <div class="p-6">
-                        <h4 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Recent Sales</h4>
-                        @if($recentSales->count() > 0)
-                            <ul class="space-y-4">
-                                @foreach($recentSales as $sale)
-                                <li class="flex justify-between items-center text-sm">
-                                    <div>
-                                        <p class="font-medium text-gray-900 dark:text-white">Invoice #{{ $sale->invoice_number }}</p>
-                                        <p class="text-gray-500">{{ $sale->created_at->diffForHumans() }}</p>
-                                    </div>
-                                    <span class="font-bold text-green-600">₹{{ number_format($sale->total_amount, 2) }}</span>
-                                </li>
-                                @endforeach
-                            </ul>
-                        @else
-                            <p class="text-sm text-gray-500">No recent sales.</p>
-                        @endif
-                    </div>
-                    <div class="p-6">
-                        <h4 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Recent Purchases</h4>
-                        @if($recentPurchases->count() > 0)
-                            <ul class="space-y-4">
-                                @foreach($recentPurchases as $purchase)
-                                <li class="flex justify-between items-center text-sm">
-                                    <div>
-                                        <p class="font-medium text-gray-900 dark:text-white">PO #{{ $purchase->invoice_number }}</p>
-                                        <p class="text-gray-500">{{ $purchase->created_at->diffForHumans() }}</p>
-                                    </div>
-                                    <span class="font-bold text-red-500">₹{{ number_format($purchase->total_amount, 2) }}</span>
-                                </li>
-                                @endforeach
-                            </ul>
-                        @else
-                            <p class="text-sm text-gray-500">No recent purchases.</p>
-                        @endif
-                    </div>
-                </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="bg-surface-container-low/50">
+                            <th class="px-6 py-4 font-label-md text-on-surface-variant uppercase tracking-wider">Invoice ID</th>
+                            <th class="px-6 py-4 font-label-md text-on-surface-variant uppercase tracking-wider">Customer</th>
+                            <th class="px-6 py-4 font-label-md text-on-surface-variant uppercase tracking-wider">Date</th>
+                            <th class="px-6 py-4 font-label-md text-on-surface-variant uppercase tracking-wider">Amount</th>
+                            <th class="px-6 py-4 font-label-md text-on-surface-variant uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-4 font-label-md text-on-surface-variant uppercase tracking-wider text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-outline-variant/10">
+                        @forelse($recentSales ?? [] as $sale)
+                            <tr class="hover:bg-primary/5 transition-colors group">
+                                <td class="px-6 py-4 font-mono-data text-on-surface">#{{ str_pad($sale->id, 5, '0', STR_PAD_LEFT) }}</td>
+                                <td class="px-6 py-4 font-body-md font-bold">{{ $sale->customer->name ?? 'Walk-in Customer' }}</td>
+                                <td class="px-6 py-4 text-body-md text-on-surface-variant">{{ $sale->created_at->format('M d, g:i A') }}</td>
+                                <td class="px-6 py-4 font-bold text-on-surface">${{ number_format($sale->total_amount, 2) }}</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-bold bg-tertiary-fixed text-on-tertiary-fixed">Completed</span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <a href="#" class="p-2 text-outline hover:text-primary transition-colors inline-block">
+                                        <span class="material-symbols-outlined">visibility</span>
+                                    </a>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-6 py-8 text-center text-outline-variant">
+                                    <span class="material-symbols-outlined text-[32px] mb-2 opacity-50 block">receipt_long</span>
+                                    No recent sales found.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
-
-            <!-- Section 7: Analytics Chart (Placeholder) -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-lg font-bold text-gray-900 dark:text-white">Revenue Trend (Last 30 Days)</h3>
-                    <select class="text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm">
-                        <option>Last 30 Days</option>
-                        <option>This Year</option>
-                    </select>
-                </div>
-                <div class="h-64 bg-gray-50 dark:bg-gray-900/50 rounded-xl flex items-center justify-center border border-dashed border-gray-200 dark:border-gray-700">
-                    <p class="text-gray-400 dark:text-gray-500 flex items-center flex-col">
-                        <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
-                        Chart visualizer ready for integration
-                    </p>
-                </div>
-            </div>
-
+        </div>
+    </div>
 </div>
 @endsection

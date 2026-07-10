@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Pharmacy;
+use App\Models\Plan;
+use App\Models\Subscription;
 use App\Models\User;
+use App\Services\TenantProvisioner;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -50,10 +53,10 @@ class RegisteredUserController extends Controller
                 'owner_name' => $validated['name'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'] ?? null,
-                'status' => 'active',
+                'status' => Pharmacy::STATUS_ACTIVE,
             ]);
 
-            return User::create([
+            $user = User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
@@ -61,6 +64,29 @@ class RegisteredUserController extends Controller
                 'pharmacy_id' => $pharmacy->id,
                 'status' => 'active',
             ]);
+
+            // Every new tenant starts on a free trial of the entry plan so the app
+            // is immediately usable and the subscription gate lets them straight in.
+            // Falls back gracefully if plans haven't been seeded yet.
+            if ($plan = Plan::active()->orderBy('price_monthly')->first()) {
+                $trialDays = (int) config('saas.trial_days', 14);
+
+                Subscription::create([
+                    'pharmacy_id'   => $pharmacy->id,
+                    'plan_id'       => $plan->id,
+                    'status'        => Subscription::STATUS_TRIAL,
+                    'billing_cycle' => 'monthly',
+                    'starts_at'     => now(),
+                    'trial_ends_at' => now()->addDays($trialDays),
+                    'ends_at'       => now()->addDays($trialDays),
+                ]);
+            }
+
+            // Seed baseline reference data (units, expense categories) so the store
+            // is immediately usable.
+            app(TenantProvisioner::class)->provision($pharmacy);
+
+            return $user;
         });
 
         event(new Registered($user));

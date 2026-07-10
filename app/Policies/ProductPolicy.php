@@ -6,39 +6,42 @@ use App\Models\Product;
 use App\Models\User;
 
 /**
- * Staff can view and search products (needed for POS autocomplete).
- * Only admins can add, edit or remove a product from the catalogue.
+ * Catalogue access is capability-driven:
+ *   - 'view medicines'   → Pharmacist, Staff (Cashiers only bill, so they can't
+ *                          browse the catalogue).
+ *   - 'create/edit/delete medicines' → Pharmacist (and the owner, implicitly).
+ * The pharmacy owner passes every check via User::canDo().
  */
 class ProductPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->isAdmin() || $user->isStaff();
+        return $user->canDo('view medicines');
     }
 
     public function view(User $user, Product $product): bool
     {
-        return $user->isAdmin() || $user->isStaff();
+        return $user->canDo('view medicines');
     }
 
     public function create(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->canDo('create medicines');
     }
 
     public function update(User $user, Product $product): bool
     {
-        return $user->isAdmin();
+        return $user->canDo('edit medicines');
     }
 
     public function delete(User $user, Product $product): bool
     {
-        return $user->isAdmin();
+        return $user->canDo('delete medicines');
     }
 
-    /** Issuing stock manually is an admin operation. */
+    /** Manual stock issue is part of inventory upkeep — same as editing stock. */
     public function issueStock(User $user, Product $product): bool
     {
-        return $user->isAdmin();
+        return $user->canDo('edit medicines');
     }
 }

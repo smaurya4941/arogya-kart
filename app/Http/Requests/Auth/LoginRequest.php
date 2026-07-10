@@ -49,6 +49,18 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        // Deactivated accounts (staff removed from active duty, or a suspended
+        // pharmacy owner) must not be allowed to hold a session. We authenticate
+        // first to avoid leaking which emails exist, then immediately reject.
+        if (Auth::user()->status !== 'active') {
+            Auth::logout();
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'This account has been deactivated. Please contact your administrator.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

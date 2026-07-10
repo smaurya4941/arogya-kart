@@ -11,10 +11,24 @@
     <div class="flex gap-3">
         <a href="{{ route('admin.sales.invoice', $sale) }}" target="_blank"
            class="bg-slate-800 text-white px-4 py-2 rounded hover:bg-slate-900">Print Invoice</a>
+        @can('create', \App\Models\SaleReturn::class)
+            @if($sale->hasReturnableItems())
+                <a href="{{ route('admin.returns.create', $sale) }}" class="bg-amber-500 text-white px-4 py-2 rounded hover:bg-amber-600">Process Return</a>
+            @endif
+        @endcan
         <a href="{{ route('admin.sales.create') }}" class="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700">New Sale</a>
         <a href="{{ route('admin.sales.index') }}" class="px-4 py-2 rounded border">Back</a>
     </div>
 </div>
+
+@if($sale->returns->isNotEmpty())
+    <div class="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-800">
+        <span class="font-medium">₹{{ number_format($sale->totalRefunded(), 2) }}</span> refunded across {{ $sale->returns->count() }} return(s).
+        @foreach($sale->returns as $r)
+            <a href="{{ route('admin.returns.show', $r) }}" class="underline ml-1">{{ $r->return_number }}</a>
+        @endforeach
+    </div>
+@endif
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <div class="bg-white shadow rounded p-6 space-y-3">

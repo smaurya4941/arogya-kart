@@ -10,16 +10,23 @@
             <!-- Current Plan -->
             <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-8 border border-gray-100 dark:border-gray-700">
                 <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Current Subscription</h3>
-                @if($currentSubscription)
-                    <div class="flex justify-between items-center bg-green-50 dark:bg-green-900/20 p-6 rounded-xl border border-green-100 dark:border-green-800">
+                @if($currentSubscription && $currentSubscription->isValid())
+                    @php $onTrial = $currentSubscription->onTrial(); @endphp
+                    <div class="flex justify-between items-center {{ $onTrial ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800' : 'bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800' }} p-6 rounded-xl border">
                         <div>
-                            <p class="text-sm text-green-600 dark:text-green-400 font-bold uppercase tracking-wide">Active Plan</p>
+                            <p class="text-sm {{ $onTrial ? 'text-amber-600 dark:text-amber-400' : 'text-green-600 dark:text-green-400' }} font-bold uppercase tracking-wide">
+                                {{ $onTrial ? 'Free Trial' : 'Active Plan' }}
+                            </p>
                             <h4 class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ $currentSubscription->plan->name }} ({{ ucfirst($currentSubscription->billing_cycle) }})</h4>
-                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Valid until: {{ $currentSubscription->ends_at ? \Carbon\Carbon::parse($currentSubscription->ends_at)->format('d M, Y') : 'N/A' }}</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                                {{ $onTrial ? 'Trial ends' : 'Valid until' }}:
+                                {{ optional($currentSubscription->currentPeriodEnd())->format('d M, Y') ?? 'N/A' }}
+                                <span class="ml-1 font-medium">({{ $currentSubscription->daysRemaining() }} days left)</span>
+                            </p>
                         </div>
                         <div>
-                            <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
-                                Active
+                            <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium {{ $onTrial ? 'bg-amber-100 text-amber-800 dark:bg-amber-800 dark:text-amber-100' : 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' }}">
+                                {{ $onTrial ? 'Trial' : 'Active' }}
                             </span>
                         </div>
                     </div>
@@ -77,6 +84,40 @@
                     @endforeach
                 </div>
             </div>
+
+            <!-- Billing History -->
+            @if(isset($invoices) && $invoices->isNotEmpty())
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-8 border border-gray-100 dark:border-gray-700">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Billing History</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm">
+                        <thead>
+                            <tr class="text-left text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">
+                                <th class="py-3 pr-4 font-semibold">Invoice</th>
+                                <th class="py-3 pr-4 font-semibold">Date</th>
+                                <th class="py-3 pr-4 font-semibold">Amount</th>
+                                <th class="py-3 pr-4 font-semibold">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                            @foreach($invoices as $invoice)
+                            <tr class="text-gray-700 dark:text-gray-200">
+                                <td class="py-3 pr-4 font-mono">{{ $invoice->invoice_number }}</td>
+                                <td class="py-3 pr-4">{{ $invoice->created_at->format('d M, Y') }}</td>
+                                <td class="py-3 pr-4">₹{{ number_format($invoice->total, 2) }}</td>
+                                <td class="py-3 pr-4">
+                                    <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium
+                                        {{ $invoice->status === 'paid' ? 'bg-green-100 text-green-800' : ($invoice->status === 'failed' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800') }}">
+                                        {{ ucfirst($invoice->status) }}
+                                    </span>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 </x-app-layout>

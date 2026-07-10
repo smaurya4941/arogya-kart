@@ -20,6 +20,7 @@ class StoreProductRequest extends FormRequest
             'barcode' => ['nullable', 'string', 'max:100', 'unique:products,barcode'],
             'description' => ['nullable', 'string'],
             'drug_type' => ['nullable', 'string', 'max:100'],
+            'schedule_type' => ['nullable', 'string', 'in:H,H1,X'],
             'image' => ['nullable', 'image', 'max:2048'],
         ];
     }
