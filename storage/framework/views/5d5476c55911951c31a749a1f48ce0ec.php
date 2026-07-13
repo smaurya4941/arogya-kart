@@ -1,4 +1,4 @@
-@php
+<?php
     $user = auth()->user();
     $brand = config('app.name', 'ArogyaKart');
     $menuGroups = [];
@@ -79,7 +79,7 @@
             ],
         ];
     }
-@endphp
+?>
 
 <!-- SideNavBar (Desktop) -->
 <aside
@@ -88,12 +88,12 @@
     :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
 >
     <div class="mb-5 flex items-center justify-between px-5">
-        <a href="{{ url('/') }}" class="flex items-center gap-2.5">
+        <a href="<?php echo e(url('/')); ?>" class="flex items-center gap-2.5">
             <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-on-primary shadow-sm">
                 <span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">medical_services</span>
             </div>
             <div class="leading-tight">
-                <h1 class="text-base font-bold tracking-tight text-on-surface dark:text-primary-fixed">{{ $brand }}</h1>
+                <h1 class="text-base font-bold tracking-tight text-on-surface dark:text-primary-fixed"><?php echo e($brand); ?></h1>
                 <p class="text-[10px] font-medium uppercase tracking-widest text-on-surface-variant/70">Pharmacy OS</p>
             </div>
         </a>
@@ -109,50 +109,51 @@
     </div>
 
     <nav class="custom-scrollbar flex-1 space-y-4 overflow-y-auto px-3">
-        @foreach ($menuGroups as $group)
+        <?php $__currentLoopData = $menuGroups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
             <div class="space-y-0.5">
-                @if(count($menuGroups) > 1)
+                <?php if(count($menuGroups) > 1): ?>
                     <p class="px-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-outline-variant">
-                        {{ $group['label'] }}
-                    </p>
-                @endif
+                        <?php echo e($group['label']); ?>
 
-                @foreach ($group['items'] as $item)
-                    @php
+                    </p>
+                <?php endif; ?>
+
+                <?php $__currentLoopData = $group['items']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <?php
                         $isAvailable = $item['available'] ?? true;
                         $isActive = $isAvailable && isset($item['active']) && request()->routeIs($item['active']);
-                    @endphp
+                    ?>
 
-                    @if ($isAvailable)
+                    <?php if($isAvailable): ?>
                         <a
-                            href="{{ route($item['route']) }}"
+                            href="<?php echo e(route($item['route'])); ?>"
                             @click="sidebarOpen = false"
-                            class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors {{ $isActive ? 'bg-primary/10 font-semibold text-primary dark:text-primary-fixed-dim' : 'font-medium text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface dark:text-outline-variant' }}"
+                            class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors <?php echo e($isActive ? 'bg-primary/10 font-semibold text-primary dark:text-primary-fixed-dim' : 'font-medium text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface dark:text-outline-variant'); ?>"
                         >
-                            <span class="material-symbols-outlined text-[20px] {{ $isActive ? 'active-icon' : '' }}">{{ $item['icon'] ?? 'circle' }}</span>
-                            <span>{{ $item['label'] }}</span>
+                            <span class="material-symbols-outlined text-[20px] <?php echo e($isActive ? 'active-icon' : ''); ?>"><?php echo e($item['icon'] ?? 'circle'); ?></span>
+                            <span><?php echo e($item['label']); ?></span>
                         </a>
-                    @else
+                    <?php else: ?>
                         <div class="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-outline-variant/60">
                             <div class="flex items-center gap-3">
-                                <span class="material-symbols-outlined text-[20px]">{{ $item['icon'] ?? 'circle' }}</span>
-                                <span class="font-medium">{{ $item['label'] }}</span>
+                                <span class="material-symbols-outlined text-[20px]"><?php echo e($item['icon'] ?? 'circle'); ?></span>
+                                <span class="font-medium"><?php echo e($item['label']); ?></span>
                             </div>
                             <span class="badge badge-neutral">Soon</span>
                         </div>
-                    @endif
-                @endforeach
+                    <?php endif; ?>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
-        @endforeach
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     </nav>
 
     <div class="mt-auto space-y-1 border-t border-outline-variant/30 px-3 pt-3">
-        <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-on-surface" href="{{ route('profile.edit') }}">
+        <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-on-surface" href="<?php echo e(route('profile.edit')); ?>">
             <span class="material-symbols-outlined text-[20px]">settings</span>
             <span>Settings</span>
         </a>
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
+        <form method="POST" action="<?php echo e(route('logout')); ?>">
+            <?php echo csrf_field(); ?>
             <button type="submit" class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-error transition-colors hover:bg-error/10">
                 <span class="material-symbols-outlined text-[20px]">logout</span>
                 <span>Sign Out</span>
@@ -160,3 +161,4 @@
         </form>
     </div>
 </aside>
+<?php /**PATH C:\Users\sachi\Desktop\arogya-kart\arogya-kart\resources\views/components/sidebar.blade.php ENDPATH**/ ?>

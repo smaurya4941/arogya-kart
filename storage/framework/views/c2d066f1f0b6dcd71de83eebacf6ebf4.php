@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html class="light" lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html class="light" lang="<?php echo e(str_replace('_', '-', app()->getLocale())); ?>">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>{{ config('app.name', 'ArogyaKart') }} | Modern Pharmacy Management SaaS</title>
+<title><?php echo e(config('app.name', 'ArogyaKart')); ?> | Modern Pharmacy Management SaaS</title>
 <!-- Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=JetBrains+Mono&amp;family=Geist:wght@400;600;800&amp;display=swap" rel="stylesheet"/>
 <!-- Material Symbols -->
@@ -118,17 +118,18 @@
     </script>
 </head>
 <body class="bg-background text-on-surface font-body-md text-body-md">
-@php
+<?php
     $ctaUrl = auth()->check() ? route('dashboard') : route('register');
     $ctaLabel = auth()->check() ? 'Go to Dashboard' : 'Get Started';
-@endphp
+?>
 <!-- TopNavBar -->
 <header class="bg-surface top-0 sticky z-50 border-b border-outline-variant">
 <nav class="flex justify-between items-center px-lg py-sm max-w-container-max mx-auto">
 <div class="flex items-center gap-md">
-<a href="{{ url('/') }}" class="flex items-center gap-sm font-headline-md text-headline-md font-bold text-primary">
+<a href="<?php echo e(url('/')); ?>" class="flex items-center gap-sm font-headline-md text-headline-md font-bold text-primary">
 <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">medical_services</span>
-{{ config('app.name', 'ArogyaKart') }}
+<?php echo e(config('app.name', 'ArogyaKart')); ?>
+
 </a>
 </div>
 <div class="hidden md:flex items-center gap-lg">
@@ -139,12 +140,12 @@
 </div>
 <div class="flex items-center gap-sm">
 <div class="hidden md:flex items-center gap-sm">
-@auth
-<a href="{{ route('dashboard') }}" class="bg-primary text-on-primary px-md py-xs rounded font-label-md text-label-md shadow-sm hover:bg-primary-container transition-colors">Dashboard</a>
-@else
-<a href="{{ route('login') }}" class="px-md py-xs font-label-md text-label-md text-primary hover:opacity-80 transition-opacity">Login</a>
-<a href="{{ route('register') }}" class="bg-primary text-on-primary px-md py-xs rounded font-label-md text-label-md shadow-sm hover:bg-primary-container transition-colors">Get Started</a>
-@endauth
+<?php if(auth()->guard()->check()): ?>
+<a href="<?php echo e(route('dashboard')); ?>" class="bg-primary text-on-primary px-md py-xs rounded font-label-md text-label-md shadow-sm hover:bg-primary-container transition-colors">Dashboard</a>
+<?php else: ?>
+<a href="<?php echo e(route('login')); ?>" class="px-md py-xs font-label-md text-label-md text-primary hover:opacity-80 transition-opacity">Login</a>
+<a href="<?php echo e(route('register')); ?>" class="bg-primary text-on-primary px-md py-xs rounded font-label-md text-label-md shadow-sm hover:bg-primary-container transition-colors">Get Started</a>
+<?php endif; ?>
 </div>
 <!-- Mobile menu toggle -->
 <button type="button" id="nav-toggle" aria-label="Toggle menu" aria-expanded="false" class="md:hidden inline-flex items-center justify-center h-9 w-9 rounded text-on-surface-variant hover:bg-surface-container transition-colors">
@@ -160,12 +161,12 @@
 <a class="py-sm text-on-surface-variant hover:text-primary transition-colors" href="#pricing">Pricing</a>
 <a class="py-sm text-on-surface-variant hover:text-primary transition-colors" href="#contact">Contact</a>
 <div class="flex items-center gap-sm pt-sm mt-xs border-t border-outline-variant">
-@auth
-<a href="{{ route('dashboard') }}" class="flex-1 text-center bg-primary text-on-primary px-md py-sm rounded font-label-md text-label-md shadow-sm hover:bg-primary-container transition-colors">Dashboard</a>
-@else
-<a href="{{ route('login') }}" class="flex-1 text-center border border-outline-variant px-md py-sm rounded font-label-md text-label-md text-primary hover:bg-surface-container transition-colors">Login</a>
-<a href="{{ route('register') }}" class="flex-1 text-center bg-primary text-on-primary px-md py-sm rounded font-label-md text-label-md shadow-sm hover:bg-primary-container transition-colors">Get Started</a>
-@endauth
+<?php if(auth()->guard()->check()): ?>
+<a href="<?php echo e(route('dashboard')); ?>" class="flex-1 text-center bg-primary text-on-primary px-md py-sm rounded font-label-md text-label-md shadow-sm hover:bg-primary-container transition-colors">Dashboard</a>
+<?php else: ?>
+<a href="<?php echo e(route('login')); ?>" class="flex-1 text-center border border-outline-variant px-md py-sm rounded font-label-md text-label-md text-primary hover:bg-surface-container transition-colors">Login</a>
+<a href="<?php echo e(route('register')); ?>" class="flex-1 text-center bg-primary text-on-primary px-md py-sm rounded font-label-md text-label-md shadow-sm hover:bg-primary-container transition-colors">Get Started</a>
+<?php endif; ?>
 </div>
 </div>
 </div>
@@ -179,7 +180,7 @@
 <h1 class="font-display text-display text-on-surface leading-tight">Modernizing Pharmacy Management.</h1>
 <p class="text-on-surface-variant text-body-lg max-w-md">Cloud-based SaaS for inventory, sales, and AI-driven insights. Built for precision and scale.</p>
 <div class="flex items-center gap-md mt-sm">
-<a href="{{ $ctaUrl }}" class="bg-primary text-on-primary h-8 px-md flex items-center justify-center font-label-md rounded shadow-md hover:brightness-110 transition-all">{{ auth()->check() ? 'Open Dashboard' : 'Start Free Trial' }}</a>
+<a href="<?php echo e($ctaUrl); ?>" class="bg-primary text-on-primary h-8 px-md flex items-center justify-center font-label-md rounded shadow-md hover:brightness-110 transition-all"><?php echo e(auth()->check() ? 'Open Dashboard' : 'Start Free Trial'); ?></a>
 <a href="#pricing" class="border border-outline-variant text-on-surface h-8 px-md flex items-center justify-center font-label-md rounded hover:bg-surface-container transition-all">Book Demo</a>
 </div>
 <div class="flex items-center gap-sm mt-md">
@@ -249,12 +250,12 @@
 <section class="bg-surface-container-low border-b border-outline-variant py-md">
 <div class="max-w-container-max mx-auto px-lg flex flex-wrap justify-between items-center gap-md">
 <div class="flex items-center gap-md">
-<span class="text-headline-lg font-display text-primary">{{ $activePharmaciesCountStr ?: '0' }}</span>
+<span class="text-headline-lg font-display text-primary">2k+</span>
 <span class="text-body-sm text-on-surface-variant font-label-md uppercase tracking-wider">Active Pharmacies</span>
 </div>
 <div class="w-px h-8 bg-outline-variant hidden md:block"></div>
 <div class="flex items-center gap-md">
-<span class="text-headline-lg font-display text-primary">{{ $invoicesCountStr ?: '0' }}</span>
+<span class="text-headline-lg font-display text-primary">1M+</span>
 <span class="text-body-sm text-on-surface-variant font-label-md uppercase tracking-wider">Processed Invoices</span>
 </div>
 <div class="w-px h-8 bg-outline-variant hidden md:block"></div>
@@ -360,49 +361,89 @@
 <p class="text-on-surface-variant text-body-md">Predictable monthly costs with no hidden implementation fees.</p>
 </div>
 <div class="grid grid-cols-1 md:grid-cols-3 gap-lg max-w-5xl mx-auto">
-@foreach($plans as $plan)
-<div class="bg-white border {{ $loop->iteration == 2 ? 'border-2 border-primary' : 'border-outline-variant' }} p-lg flex flex-col gap-md relative">
-@if($loop->iteration == 2)
-<div class="absolute top-0 right-lg -translate-y-1/2 bg-primary text-on-primary px-sm py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">Most Popular</div>
-@endif
+<!-- Starter -->
+<div class="bg-white border border-outline-variant p-lg flex flex-col gap-md">
 <div>
-<h3 class="font-headline-md text-headline-md text-on-surface">{{ $plan->name }}</h3>
+<h3 class="font-headline-md text-headline-md text-on-surface">Starter</h3>
 <div class="mt-xs flex items-baseline gap-1">
-@if(empty($plan->price_monthly) || $plan->price_monthly == 0)
-<span class="text-headline-lg font-display text-primary">Custom</span>
-@else
-<span class="text-display font-display text-primary">₹{{ rtrim(rtrim((string) $plan->price_monthly, '0'), '.') }}</span>
+<span class="text-display font-display text-primary">$49</span>
 <span class="text-body-sm text-on-surface-variant">/month</span>
-@endif
 </div>
 </div>
 <ul class="flex flex-col gap-sm flex-grow">
 <li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
 <span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
-    {{ $plan->max_branches == -1 || $plan->max_branches > 999 ? 'Unlimited Branches' : ($plan->max_branches == 1 ? 'Single Branch' : 'Up to ' . $plan->max_branches . ' Branches') }}
-</li>
+                                Single Branch Support
+                            </li>
 <li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
 <span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
-    {{ $plan->max_users == -1 || $plan->max_users > 999 ? 'Unlimited Users' : 'Up to ' . $plan->max_users . ' Users' }}
-</li>
-@if($plan->api_access)
+                                Up to 5,000 SKUs
+                            </li>
 <li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
 <span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
-    API Access
-</li>
-@endif
-@if(is_array($plan->features))
-@foreach($plan->features as $feature)
-<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
-<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
-    {{ $feature }}
-</li>
-@endforeach
-@endif
+                                Basic Reporting
+                            </li>
 </ul>
-<a href="{{ empty($plan->price_monthly) || $plan->price_monthly == 0 ? '#contact' : $ctaUrl }}" class="w-full h-8 {{ $loop->iteration == 2 ? 'bg-primary text-on-primary shadow-md hover:brightness-110' : 'border border-outline-variant hover:bg-surface-container text-on-surface' }} font-label-md transition-all flex items-center justify-center">{{ empty($plan->price_monthly) || $plan->price_monthly == 0 ? 'Contact Sales' : 'Select Plan' }}</a>
+<a href="<?php echo e($ctaUrl); ?>" class="w-full h-8 border border-outline-variant font-label-md hover:bg-surface-container transition-colors flex items-center justify-center">Select Plan</a>
 </div>
-@endforeach
+<!-- Professional -->
+<div class="bg-white border-2 border-primary p-lg flex flex-col gap-md relative">
+<div class="absolute top-0 right-lg -translate-y-1/2 bg-primary text-on-primary px-sm py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">Most Popular</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Professional</h3>
+<div class="mt-xs flex items-baseline gap-1">
+<span class="text-display font-display text-primary">$129</span>
+<span class="text-body-sm text-on-surface-variant">/month</span>
+</div>
+</div>
+<ul class="flex flex-col gap-sm flex-grow">
+<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
+                                Up to 5 Branches
+                            </li>
+<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
+                                Unlimited SKUs
+                            </li>
+<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
+                                Advanced AI Forecasting
+                            </li>
+<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
+                                Supplier Integration APIs
+                            </li>
+</ul>
+<a href="<?php echo e($ctaUrl); ?>" class="w-full h-8 bg-primary text-on-primary font-label-md hover:brightness-110 transition-all shadow-md flex items-center justify-center">Select Plan</a>
+</div>
+<!-- Enterprise -->
+<div class="bg-white border border-outline-variant p-lg flex flex-col gap-md">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Enterprise</h3>
+<div class="mt-xs flex items-baseline gap-1">
+<span class="text-headline-lg font-display text-primary">Custom</span>
+</div>
+</div>
+<ul class="flex flex-col gap-sm flex-grow">
+<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
+                                Unlimited Branches
+                            </li>
+<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
+                                Dedicated Account Manager
+                            </li>
+<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
+                                On-Premise Cloud Hybrid
+                            </li>
+<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
+                                SSO &amp; Audit Logs
+                            </li>
+</ul>
+<a href="#contact" class="w-full h-8 border border-outline-variant font-label-md hover:bg-surface-container transition-colors flex items-center justify-center">Contact Sales</a>
+</div>
 </div>
 </div>
 </section>
@@ -410,9 +451,9 @@
 <section class="py-24 relative overflow-hidden bg-primary">
 <div class="max-w-container-max mx-auto px-lg relative z-10 text-center flex flex-col items-center gap-md">
 <h2 class="font-display text-display text-on-primary max-w-2xl">Ready to digitize your pharmacy operations?</h2>
-<p class="text-on-primary opacity-80 text-body-lg max-w-xl">Join thousands of leading pharmacies using {{ config('app.name', 'ArogyaKart') }} to increase margins and reduce medication errors.</p>
+<p class="text-on-primary opacity-80 text-body-lg max-w-xl">Join thousands of leading pharmacies using <?php echo e(config('app.name', 'ArogyaKart')); ?> to increase margins and reduce medication errors.</p>
 <div class="flex items-center gap-md mt-md">
-<a href="{{ $ctaUrl }}" class="bg-white text-primary h-10 px-lg flex items-center justify-center font-label-md rounded shadow-xl hover:scale-105 transition-transform">{{ auth()->check() ? 'Open Dashboard' : 'Get Started Now' }}</a>
+<a href="<?php echo e($ctaUrl); ?>" class="bg-white text-primary h-10 px-lg flex items-center justify-center font-label-md rounded shadow-xl hover:scale-105 transition-transform"><?php echo e(auth()->check() ? 'Open Dashboard' : 'Get Started Now'); ?></a>
 <a href="#contact" class="text-on-primary h-10 px-lg flex items-center justify-center font-label-md border border-on-primary/30 rounded hover:bg-white/10 transition-colors">Talk to an Expert</a>
 </div>
 </div>
@@ -422,7 +463,7 @@
 <footer id="contact" class="bg-surface-container-low border-t border-outline-variant scroll-mt-16">
 <div class="grid grid-cols-1 md:grid-cols-4 gap-lg px-lg py-xl max-w-container-max mx-auto">
 <div class="flex flex-col gap-md">
-<span class="font-headline-md text-headline-md font-bold text-primary">{{ config('app.name', 'ArogyaKart') }}</span>
+<span class="font-headline-md text-headline-md font-bold text-primary"><?php echo e(config('app.name', 'ArogyaKart')); ?></span>
 <p class="text-body-sm text-on-surface-variant leading-relaxed">Precision-engineered software for the modern healthcare supply chain.</p>
 </div>
 <div class="flex flex-col gap-sm">
@@ -440,16 +481,16 @@
 <div class="flex flex-col gap-sm">
 <h4 class="font-label-md text-on-surface uppercase tracking-wider text-[10px]">Get Started</h4>
 <p class="text-body-sm text-on-surface-variant mb-xs">Create your pharmacy account in minutes.</p>
-<a href="{{ route('register') }}" class="bg-primary text-on-primary h-8 px-md rounded font-label-md text-label-md shadow-sm hover:bg-primary-container transition-colors flex items-center justify-center gap-1 w-max">
+<a href="<?php echo e(route('register')); ?>" class="bg-primary text-on-primary h-8 px-md rounded font-label-md text-label-md shadow-sm hover:bg-primary-container transition-colors flex items-center justify-center gap-1 w-max">
 <span class="material-symbols-outlined !text-[16px]">rocket_launch</span> Sign Up Free
 </a>
 </div>
 </div>
 <div class="max-w-container-max mx-auto px-lg py-md border-t border-outline-variant flex justify-between items-center">
-<span class="text-body-sm text-on-surface-variant">© {{ date('Y') }} {{ config('app.name', 'ArogyaKart') }}. All rights reserved.</span>
+<span class="text-body-sm text-on-surface-variant">© <?php echo e(date('Y')); ?> <?php echo e(config('app.name', 'ArogyaKart')); ?>. All rights reserved.</span>
 <div class="flex gap-md">
-<a href="{{ route('login') }}" class="text-body-sm text-on-surface-variant hover:text-primary transition-colors">Login</a>
-<a href="{{ route('register') }}" class="text-body-sm text-on-surface-variant hover:text-primary transition-colors">Register</a>
+<a href="<?php echo e(route('login')); ?>" class="text-body-sm text-on-surface-variant hover:text-primary transition-colors">Login</a>
+<a href="<?php echo e(route('register')); ?>" class="text-body-sm text-on-surface-variant hover:text-primary transition-colors">Register</a>
 </div>
 </div>
 </footer>
@@ -479,3 +520,4 @@
         })();
     </script>
 </body></html>
+<?php /**PATH C:\Users\sachi\Desktop\arogya-kart\arogya-kart\resources\views/welcome.blade.php ENDPATH**/ ?>

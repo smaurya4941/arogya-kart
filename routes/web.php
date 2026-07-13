@@ -11,10 +11,19 @@ use App\Http\Controllers\Admin\SupplierController;
 use App\Http\Controllers\Admin\PurchaseController;
 use App\Http\Controllers\Admin\SaleController;
 use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Admin\CategoryController;
 
 
 Route::get('/', function () {
-    return view('welcome');
+    $activePharmaciesCount = \App\Models\Pharmacy::where('status', \App\Models\Pharmacy::STATUS_ACTIVE)->count();
+    $invoicesCount = \App\Models\Invoice::withoutGlobalScopes()->count();
+    $plans = \App\Models\Plan::active()->get();
+
+    $activePharmaciesCountStr = $activePharmaciesCount > 1000 ? number_format($activePharmaciesCount / 1000, 1) . 'k+' : $activePharmaciesCount;
+    $invoicesCountStr = $invoicesCount > 1000000 ? number_format($invoicesCount / 1000000, 1) . 'M+' : 
+                       ($invoicesCount > 1000 ? number_format($invoicesCount / 1000, 1) . 'k+' : $invoicesCount);
+
+    return view('welcome', compact('activePharmaciesCountStr', 'invoicesCountStr', 'plans'));
 });
 
 Route::get('/dashboard', function () {
@@ -127,6 +136,7 @@ Route::middleware(['auth', 'role:admin,staff', 'subscription'])
         Route::get('returns/{return}', [\App\Http\Controllers\Admin\SaleReturnController::class, 'show'])->name('returns.show');
 
         // Inventory / catalogue
+        Route::resource('categories', CategoryController::class)->except(['show']);
         Route::resource('products', ProductController::class);
 
         Route::get('products/{product}/batches/create', [ProductBatchController::class, 'create'])
