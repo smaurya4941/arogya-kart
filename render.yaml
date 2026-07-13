@@ -1,0 +1,55 @@
+services:
+  - type: web
+    name: arogya-kart-web
+    env: docker
+    plan: starter
+    region: singapore
+    healthCheckPath: /
+    envVars:
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_URL
+        value: https://arogya-kart-web.onrender.com
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: arogya-kart-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: arogya-kart-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: arogya-kart-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: arogya-kart-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: arogya-kart-db
+          property: password
+      - key: PORT
+        value: "10000"
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: database
+      - key: SESSION_DRIVER
+        value: database
+
+databases:
+  - name: arogya-kart-db
+    databaseName: arogya_kart
+    user: arogya_kart_user
+    plan: starter
+    region: singapore
