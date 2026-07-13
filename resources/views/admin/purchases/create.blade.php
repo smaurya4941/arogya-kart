@@ -14,18 +14,20 @@
 @endphp
 
 @section('content')
-<div class="max-w-6xl"
+<div class="page max-w-6xl"
      x-data="purchaseForm({{ Illuminate\Support\Js::from($initialRows) }})">
-    <h1 class="text-2xl font-bold mb-4">New Purchase</h1>
+    <div class="page-header">
+        <h1 class="page-title">New Purchase</h1>
+    </div>
 
-    <form method="POST" action="{{ route('admin.purchases.store') }}" class="space-y-6">
+    <form method="POST" action="{{ route('admin.purchases.store') }}" class="space-y-4">
         @csrf
 
         {{-- Header --}}
-        <div class="bg-white shadow rounded p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="card card-pad grid grid-cols-1 gap-4 md:grid-cols-3">
             <div>
-                <label class="block text-sm font-medium mb-1">Supplier <span class="text-rose-500">*</span></label>
-                <select name="supplier_id" class="w-full border rounded px-3 py-2" required>
+                <label class="form-label">Supplier <span class="text-error">*</span></label>
+                <select name="supplier_id" class="form-select" required>
                     <option value="">Select supplier</option>
                     @foreach($suppliers as $supplier)
                         <option value="{{ $supplier->id }}"
@@ -35,111 +37,83 @@
                     @endforeach
                 </select>
                 @if($suppliers->isEmpty())
-                    <p class="text-xs text-rose-600 mt-1">
+                    <p class="mt-1 text-xs text-error">
                         No active suppliers. <a href="{{ route('admin.suppliers.create') }}" class="underline">Add one first.</a>
                     </p>
                 @endif
             </div>
             <div>
-                <label class="block text-sm font-medium mb-1">Purchase Date <span class="text-rose-500">*</span></label>
-                <input type="date" name="purchase_date" value="{{ old('purchase_date', now()->toDateString()) }}"
-                       class="w-full border rounded px-3 py-2" required>
+                <label class="form-label">Purchase Date <span class="text-error">*</span></label>
+                <input type="date" name="purchase_date" value="{{ old('purchase_date', now()->toDateString()) }}" class="form-input" required>
             </div>
             <div>
-                <label class="block text-sm font-medium mb-1">Supplier Invoice #</label>
-                <input type="text" name="supplier_invoice_number" value="{{ old('supplier_invoice_number') }}"
-                       class="w-full border rounded px-3 py-2">
+                <label class="form-label">Supplier Invoice #</label>
+                <input type="text" name="supplier_invoice_number" value="{{ old('supplier_invoice_number') }}" class="form-input">
             </div>
             <div>
-                <label class="block text-sm font-medium mb-1">Payment Terms</label>
-                <input type="text" name="payment_terms" value="{{ old('payment_terms') }}"
-                       placeholder="e.g. Net 30" class="w-full border rounded px-3 py-2">
+                <label class="form-label">Payment Terms</label>
+                <input type="text" name="payment_terms" value="{{ old('payment_terms') }}" placeholder="e.g. Net 30" class="form-input">
             </div>
             <div class="md:col-span-2">
-                <label class="block text-sm font-medium mb-1">Notes</label>
-                <input type="text" name="notes" value="{{ old('notes') }}"
-                       class="w-full border rounded px-3 py-2">
+                <label class="form-label">Notes</label>
+                <input type="text" name="notes" value="{{ old('notes') }}" class="form-input">
             </div>
         </div>
 
         {{-- Line items --}}
-        <div class="bg-white shadow rounded p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="font-semibold">Items</h2>
-                <button type="button" @click="addRow()"
-                        class="bg-emerald-600 text-white px-3 py-1.5 rounded text-sm hover:bg-emerald-700">
-                    + Add Item
+        <div class="card card-pad">
+            <div class="mb-4 flex items-center justify-between">
+                <h2 class="section-title">Items</h2>
+                <button type="button" @click="addRow()" class="btn btn-primary btn-sm">
+                    <span class="material-symbols-outlined text-[16px]">add</span> Add Item
                 </button>
             </div>
 
             <div class="overflow-x-auto">
-                <table class="min-w-full text-sm">
-                    <thead class="bg-gray-50 text-left">
+                <table class="table-saas">
+                    <thead>
                         <tr>
-                            <th class="p-2">Product</th>
-                            <th class="p-2">Batch #</th>
-                            <th class="p-2">Expiry</th>
-                            <th class="p-2 w-20">Qty</th>
-                            <th class="p-2 w-28">Buy Price</th>
-                            <th class="p-2 w-28">MRP</th>
-                            <th class="p-2 w-28">Sell Price</th>
-                            <th class="p-2 w-20">GST %</th>
-                            <th class="p-2 w-28 text-right">Line Total</th>
-                            <th class="p-2"></th>
+                            <th>Product</th>
+                            <th>Batch #</th>
+                            <th>Expiry</th>
+                            <th class="w-20">Qty</th>
+                            <th class="w-28">Buy Price</th>
+                            <th class="w-28">MRP</th>
+                            <th class="w-28">Sell Price</th>
+                            <th class="w-20">GST %</th>
+                            <th class="w-28 text-right">Line Total</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
                         <template x-for="(row, i) in rows" :key="i">
-                            <tr class="border-t align-top">
-                                <td class="p-2">
-                                    <select :name="`items[${i}][product_id]`" x-model="row.product_id"
-                                            class="w-44 border rounded px-2 py-1.5" required>
+                            <tr class="align-top">
+                                <td>
+                                    <select :name="`items[${i}][product_id]`" x-model="row.product_id" class="form-select h-8 w-44" required>
                                         <option value="">Select</option>
                                         @foreach($products as $product)
                                             <option value="{{ $product->id }}">{{ $product->name }} ({{ $product->sku }})</option>
                                         @endforeach
                                     </select>
                                 </td>
-                                <td class="p-2">
-                                    <input type="text" :name="`items[${i}][batch_number]`" x-model="row.batch_number"
-                                           class="w-28 border rounded px-2 py-1.5" required>
-                                </td>
-                                <td class="p-2">
-                                    <input type="date" :name="`items[${i}][expiry_date]`" x-model="row.expiry_date"
-                                           class="w-36 border rounded px-2 py-1.5" required>
-                                </td>
-                                <td class="p-2">
-                                    <input type="number" min="1" :name="`items[${i}][quantity]`" x-model.number="row.quantity"
-                                           class="w-20 border rounded px-2 py-1.5" required>
-                                </td>
-                                <td class="p-2">
-                                    <input type="number" step="0.01" min="0" :name="`items[${i}][purchase_price]`" x-model.number="row.purchase_price"
-                                           class="w-28 border rounded px-2 py-1.5" required>
-                                </td>
-                                <td class="p-2">
-                                    <input type="number" step="0.01" min="0" :name="`items[${i}][mrp]`" x-model.number="row.mrp"
-                                           class="w-28 border rounded px-2 py-1.5" required>
-                                </td>
-                                <td class="p-2">
-                                    <input type="number" step="0.01" min="0" :name="`items[${i}][selling_price]`" x-model.number="row.selling_price"
-                                           class="w-28 border rounded px-2 py-1.5">
-                                </td>
-                                <td class="p-2">
-                                    <input type="number" step="0.01" min="0" max="100" :name="`items[${i}][gst_percentage]`" x-model.number="row.gst_percentage"
-                                           class="w-20 border rounded px-2 py-1.5">
-                                </td>
-                                <td class="p-2 text-right font-medium" x-text="lineTotal(row).toFixed(2)"></td>
-                                <td class="p-2">
-                                    <button type="button" @click="removeRow(i)" x-show="rows.length > 1"
-                                            class="text-rose-600 hover:underline">✕</button>
+                                <td><input type="text" :name="`items[${i}][batch_number]`" x-model="row.batch_number" class="form-input h-8 w-28" required></td>
+                                <td><input type="date" :name="`items[${i}][expiry_date]`" x-model="row.expiry_date" class="form-input h-8 w-36" required></td>
+                                <td><input type="number" min="1" :name="`items[${i}][quantity]`" x-model.number="row.quantity" class="form-input h-8 w-20" required></td>
+                                <td><input type="number" step="0.01" min="0" :name="`items[${i}][purchase_price]`" x-model.number="row.purchase_price" class="form-input h-8 w-28" required></td>
+                                <td><input type="number" step="0.01" min="0" :name="`items[${i}][mrp]`" x-model.number="row.mrp" class="form-input h-8 w-28" required></td>
+                                <td><input type="number" step="0.01" min="0" :name="`items[${i}][selling_price]`" x-model.number="row.selling_price" class="form-input h-8 w-28"></td>
+                                <td><input type="number" step="0.01" min="0" max="100" :name="`items[${i}][gst_percentage]`" x-model.number="row.gst_percentage" class="form-input h-8 w-20"></td>
+                                <td class="text-right font-medium" x-text="lineTotal(row).toFixed(2)"></td>
+                                <td>
+                                    <button type="button" @click="removeRow(i)" x-show="rows.length > 1" class="btn-icon hover:text-error">✕</button>
                                 </td>
                             </tr>
                         </template>
                     </tbody>
                     <tfoot>
-                        <tr class="border-t bg-gray-50">
-                            <td colspan="8" class="p-2 text-right font-semibold">Grand Total</td>
-                            <td class="p-2 text-right font-bold">₹<span x-text="grandTotal().toFixed(2)"></span></td>
+                        <tr class="bg-surface-container-low/60">
+                            <td colspan="8" class="px-4 py-3 text-right font-semibold">Grand Total</td>
+                            <td class="px-4 py-3 text-right font-bold">₹<span x-text="grandTotal().toFixed(2)"></span></td>
                             <td></td>
                         </tr>
                     </tfoot>
@@ -147,9 +121,9 @@
             </div>
         </div>
 
-        <div class="flex gap-3">
-            <button class="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700">Record Purchase</button>
-            <a href="{{ route('admin.purchases.index') }}" class="px-4 py-2 rounded border">Cancel</a>
+        <div class="flex gap-2">
+            <button class="btn btn-primary">Record Purchase</button>
+            <a href="{{ route('admin.purchases.index') }}" class="btn btn-outline">Cancel</a>
         </div>
     </form>
 </div>

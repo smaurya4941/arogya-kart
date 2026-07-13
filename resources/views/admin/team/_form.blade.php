@@ -3,25 +3,32 @@
     $isEdit = isset($member);
 @endphp
 
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+@if ($errors->any())
+    <div class="mb-4 rounded-lg border border-error/30 bg-error-container/40 p-3 text-sm text-on-error-container">
+        <ul class="list-disc space-y-1 pl-5">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Full name</label>
-        <input type="text" name="name" value="{{ old('name', $member->name ?? '') }}" required
-               class="w-full rounded-lg border-gray-300 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+        <label class="form-label">Full name</label>
+        <input type="text" name="name" value="{{ old('name', $member->name ?? '') }}" required class="form-input">
     </div>
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-        <input type="email" name="email" value="{{ old('email', $member->email ?? '') }}" required
-               class="w-full rounded-lg border-gray-300 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+        <label class="form-label">Email</label>
+        <input type="email" name="email" value="{{ old('email', $member->email ?? '') }}" required class="form-input">
     </div>
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Phone <span class="text-gray-400">(optional)</span></label>
-        <input type="text" name="phone" value="{{ old('phone', $member->phone ?? '') }}"
-               class="w-full rounded-lg border-gray-300 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+        <label class="form-label">Phone <span class="text-outline">(optional)</span></label>
+        <input type="text" name="phone" value="{{ old('phone', $member->phone ?? '') }}" class="form-input">
     </div>
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Position</label>
-        <select name="position" required class="w-full rounded-lg border-gray-300 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+        <label class="form-label">Position</label>
+        <select name="position" required class="form-select">
             <option value="">Select a position…</option>
             @foreach($positions as $position)
                 <option value="{{ $position }}" @selected($currentPosition === $position)>{{ $position }}</option>
@@ -29,22 +36,18 @@
         </select>
     </div>
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">
-            Password @if($isEdit)<span class="text-gray-400">(leave blank to keep)</span>@endif
+        <label class="form-label">
+            Password @if($isEdit)<span class="text-outline">(leave blank to keep)</span>@endif
         </label>
-        <input type="password" name="password" {{ $isEdit ? '' : 'required' }} autocomplete="new-password"
-               class="w-full rounded-lg border-gray-300 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+        <input type="password" name="password" {{ $isEdit ? '' : 'required' }} autocomplete="new-password" class="form-input">
     </div>
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Confirm password</label>
-        <input type="password" name="password_confirmation" autocomplete="new-password"
-               class="w-full rounded-lg border-gray-300 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+        <label class="form-label">Confirm password</label>
+        <input type="password" name="password_confirmation" autocomplete="new-password" class="form-input">
     </div>
 </div>
 
-<div class="mt-6 flex gap-3">
-    <button class="px-5 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
-        {{ $isEdit ? 'Save changes' : 'Add member' }}
-    </button>
-    <a href="{{ route('admin.team.index') }}" class="px-5 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">Cancel</a>
+<div class="mt-6 flex gap-2">
+    <button class="btn btn-primary">{{ $isEdit ? 'Save changes' : 'Add member' }}</button>
+    <a href="{{ route('admin.team.index') }}" class="btn btn-outline">Cancel</a>
 </div>

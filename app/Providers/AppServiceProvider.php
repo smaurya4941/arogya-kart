@@ -37,6 +37,14 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(ProductRepositoryInterface::class, EloquentProductRepository::class);
         $this->app->bind(BatchRepositoryInterface::class, EloquentBatchRepository::class);
+
+        $this->app->singleton(\App\Services\PlatformSettings::class);
+
+        // Resolve RazorpayService from config (its constructor defaults to null,
+        // so without this binding container-injected instances are unconfigured).
+        // Registered *after* PlatformSettings so the config bridge in boot() can
+        // overlay DB-managed keys before the service is first resolved.
+        $this->app->singleton(\App\Services\RazorpayService::class, fn () => \App\Services\RazorpayService::make());
     }
 
     /**
@@ -44,6 +52,38 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        /*
+        |--------------------------------------------------------------------------
+        | Platform settings → runtime config bridge
+        |--------------------------------------------------------------------------
+        | Overlay DB-managed platform settings onto Laravel config so the payment
+        | gateway, GST rate and mail identity can be changed from the Super Admin
+        | settings page without redeploying. Degrades silently before the table
+        | exists (first migration) so console commands never break.
+        */
+        try {
+            $settings = $this->app->make(\App\Services\PlatformSettings::class);
+
+            foreach ([
+                'razorpay_key'            => 'services.razorpay.key',
+                'razorpay_secret'         => 'services.razorpay.secret',
+                'razorpay_webhook_secret' => 'services.razorpay.webhook_secret',
+                'mail_from_address'       => 'mail.from.address',
+                'mail_from_name'          => 'mail.from.name',
+            ] as $settingKey => $configKey) {
+                if (($value = $settings->get($settingKey)) !== null) {
+                    config([$configKey => $value]);
+                }
+            }
+
+            if (($gst = $settings->get('gst_percent')) !== null) {
+                config(['saas.gst_percent' => (float) $gst]);
+            }
+        } catch (\Throwable $e) {
+            // Never let a settings-store hiccup take down the whole app boot.
+            Log::warning('Platform settings config bridge skipped: ' . $e->getMessage());
+        }
+
         /*
         |--------------------------------------------------------------------------
         | Production Hardening

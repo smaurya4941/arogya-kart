@@ -63,7 +63,7 @@
 
             <x-sidebar />
 
-            <div class="flex min-h-screen flex-1 flex-col lg:ml-[280px]">
+            <div class="flex min-h-screen flex-1 flex-col lg:ml-[248px]">
                 <x-navbar
                     :title="trim($__env->yieldContent('title')) ?: 'Dashboard'"
                     :subtitle="trim($__env->yieldContent('subtitle')) ?: null"
@@ -74,7 +74,7 @@
                 </x-navbar>
 
                 @if(session()->has(\App\Http\Controllers\SuperAdmin\ImpersonationController::SESSION_KEY))
-                    <div class="bg-indigo-600 text-white px-6 py-2.5 flex items-center justify-between text-sm">
+                    <div class="bg-inverse-surface text-inverse-on-surface px-6 py-2.5 flex items-center justify-between text-sm">
                         <span class="flex items-center gap-2">
                             <span class="material-symbols-outlined text-base">visibility</span>
                             You are impersonating <strong>{{ auth()->user()->pharmacy?->name ?? auth()->user()->name }}</strong>. Actions you take affect this pharmacy.
@@ -86,7 +86,26 @@
                     </div>
                 @endif
 
-                <main class="flex-1 pb-24 lg:pb-12">
+                @php
+                    $liveAnnouncements = \App\Models\Announcement::cachedLive();
+                    $announcementStyles = [
+                        'info'     => 'bg-primary/10 text-primary',
+                        'warning'  => 'bg-amber-100 text-amber-800',
+                        'critical' => 'bg-error-container text-on-error-container',
+                    ];
+                    $announcementIcons = ['info' => 'campaign', 'warning' => 'warning', 'critical' => 'error'];
+                @endphp
+                @foreach($liveAnnouncements as $announcement)
+                    <div class="px-6 py-2.5 text-sm {{ $announcementStyles[$announcement->level] ?? $announcementStyles['info'] }}">
+                        <span class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-base">{{ $announcementIcons[$announcement->level] ?? 'campaign' }}</span>
+                            <strong>{{ $announcement->title }}</strong>
+                            <span class="opacity-90">{{ $announcement->body }}</span>
+                        </span>
+                    </div>
+                @endforeach
+
+                <main class="flex-1 px-4 py-5 pb-24 sm:px-6 lg:pb-8">
                     <x-flash-message />
 
                     @hasSection('content')
@@ -96,27 +115,34 @@
                     @endif
                 </main>
                 
-                <!-- BottomNavBar (Mobile) -->
-                <nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 bg-surface-container-lowest dark:bg-on-background border-t border-outline-variant/30 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] lg:hidden">
-                    <a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl p-2 active:bg-surface-variant transition-all" href="{{ route('pharmacy.dashboard') }}">
-                        <span class="material-symbols-outlined active-icon">home</span>
-                        <span class="font-label-md text-label-md">Home</span>
-                    </a>
-                    <a class="flex flex-col items-center justify-center text-on-surface-variant active:bg-surface-variant p-2 rounded-xl transition-all" href="#">
-                        <span class="material-symbols-outlined">shopping_cart</span>
-                        <span class="font-label-md text-label-md">POS</span>
-                    </a>
-                    <a class="flex flex-col items-center justify-center text-on-surface-variant active:bg-surface-variant p-2 rounded-xl transition-all" href="#">
-                        <span class="material-symbols-outlined">inventory</span>
-                        <span class="font-label-md text-label-md">Stock</span>
-                    </a>
-                    <a class="flex flex-col items-center justify-center text-on-surface-variant active:bg-surface-variant p-2 rounded-xl transition-all relative" href="#">
-                        <span class="material-symbols-outlined">notifications_active</span>
-                        <span class="font-label-md text-label-md">Alerts</span>
-                        @if(auth()->user()?->unreadNotifications()->count() > 0)
-                            <span class="absolute top-0 right-1 w-2 h-2 bg-error rounded-full border border-white"></span>
-                        @endif
-                    </a>
+                <!-- BottomNavBar (Mobile) — role-aware, only links to routes the user can reach -->
+                @php
+                    $navUser = auth()->user();
+                    $bottomNav = [
+                        ['label' => 'Home', 'icon' => 'home', 'url' => route('dashboard'), 'match' => ['dashboard', '*.dashboard']],
+                    ];
+                    if (\Illuminate\Support\Facades\Route::has('admin.pos.index') && $navUser?->can('create', \App\Models\Sale::class)) {
+                        $bottomNav[] = ['label' => 'POS', 'icon' => 'point_of_sale', 'url' => route('admin.pos.index'), 'match' => ['admin.pos.*']];
+                    }
+                    if (\Illuminate\Support\Facades\Route::has('admin.products.index') && $navUser?->can('viewAny', \App\Models\Product::class)) {
+                        $bottomNav[] = ['label' => 'Stock', 'icon' => 'inventory_2', 'url' => route('admin.products.index'), 'match' => ['admin.products.*']];
+                    }
+                    $navUnread = $navUser?->unreadNotifications()->count() ?? 0;
+                    if (\Illuminate\Support\Facades\Route::has('admin.notifications.index')) {
+                        $bottomNav[] = ['label' => 'Alerts', 'icon' => 'notifications', 'url' => route('admin.notifications.index'), 'match' => ['admin.notifications.*'], 'badge' => $navUnread];
+                    }
+                @endphp
+                <nav class="fixed bottom-0 left-0 z-50 flex w-full items-center justify-around border-t border-outline-variant/40 bg-white/90 px-2 py-1.5 backdrop-blur-xl dark:bg-on-background lg:hidden">
+                    @foreach($bottomNav as $item)
+                        @php $active = call_user_func_array([request(), 'routeIs'], $item['match']); @endphp
+                        <a href="{{ $item['url'] }}" class="relative flex flex-1 flex-col items-center justify-center gap-0.5 rounded-lg py-1.5 text-[10px] font-medium transition-colors {{ $active ? 'text-primary' : 'text-on-surface-variant' }}">
+                            <span class="material-symbols-outlined text-[22px] {{ $active ? 'active-icon' : '' }}">{{ $item['icon'] }}</span>
+                            <span>{{ $item['label'] }}</span>
+                            @if(($item['badge'] ?? 0) > 0)
+                                <span class="absolute right-1/4 top-1 h-2 w-2 rounded-full bg-error ring-2 ring-white"></span>
+                            @endif
+                        </a>
+                    @endforeach
                 </nav>
             </div>
         </div>

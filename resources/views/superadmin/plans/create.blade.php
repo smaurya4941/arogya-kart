@@ -3,7 +3,7 @@
 @section('title', 'New Plan')
 
 @section('content')
-    <div class="max-w-2xl bg-white rounded-2xl border border-gray-200 p-6">
+    <div class="card card-pad max-w-2xl">
         <form method="POST" action="{{ route('superadmin.plans.store') }}">
             @csrf
             @include('superadmin.plans._form')

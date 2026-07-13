@@ -6,7 +6,7 @@
     <title>500 — Server Error | {{ config('app.name', 'ArogyaKart') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-slate-50 text-slate-900 antialiased min-h-screen flex items-center justify-center">
+<body class="bg-background text-on-surface antialiased min-h-screen flex items-center justify-center">
     <div class="text-center px-6 py-20 max-w-lg mx-auto">
         {{-- Icon --}}
         <div class="flex justify-center mb-6">
@@ -22,8 +22,8 @@
         <p class="text-8xl font-black text-rose-500 tracking-tight leading-none mb-4">500</p>
 
         {{-- Heading --}}
-        <h1 class="text-2xl font-bold text-slate-800 mb-3">Something went wrong</h1>
-        <p class="text-slate-500 mb-8 leading-relaxed">
+        <h1 class="text-2xl font-bold text-on-surface mb-3">Something went wrong</h1>
+        <p class="text-on-surface-variant mb-8 leading-relaxed">
             We're sorry — an unexpected error occurred on our end. Our team has been notified.
             Please try again in a moment or contact support if the problem persists.
         </p>
@@ -31,7 +31,7 @@
         {{-- Actions --}}
         <div class="flex flex-col sm:flex-row gap-3 justify-center">
             <a href="javascript:history.back()"
-               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-medium hover:bg-slate-200 transition">
+               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-surface-container-high text-on-surface-variant font-medium hover:bg-surface-container-highest transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
                 </svg>
@@ -53,7 +53,7 @@
             @endauth
         </div>
 
-        <p class="mt-12 text-sm text-slate-400">
+        <p class="mt-12 text-sm text-outline">
             {{ config('app.name', 'ArogyaKart') }} &mdash; Pharmacy Management
         </p>
     </div>

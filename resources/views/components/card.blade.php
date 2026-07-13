@@ -4,11 +4,11 @@
     'description' => null,
 ])
 
-<div {{ $attributes->class('rounded-3xl border border-slate-200 bg-white p-6 shadow-sm') }}>
-    <p class="text-sm font-medium text-slate-500">{{ $title }}</p>
-    <p class="mt-3 text-3xl font-bold tracking-tight text-slate-900">{{ $value }}</p>
+<div {{ $attributes->class('card card-pad') }}>
+    <p class="text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant">{{ $title }}</p>
+    <p class="mt-1 text-2xl font-bold tracking-tight text-on-surface">{{ $value }}</p>
 
     @if ($description)
-        <p class="mt-2 text-sm text-slate-500">{{ $description }}</p>
+        <p class="mt-1 text-xs text-on-surface-variant">{{ $description }}</p>
     @endif
 </div>

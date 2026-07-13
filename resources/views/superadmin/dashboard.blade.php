@@ -4,70 +4,75 @@
 
 @section('content')
     {{-- KPI cards --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         @php
             $cards = [
-                ['Total Pharmacies', $totalPharmacies, $activePharmacies.' active', 'text-blue-600'],
-                ['Active Subscriptions', $activeSubs, $trialSubs.' on trial', 'text-green-600'],
-                ['Revenue (This Month)', '₹'.number_format($monthlyRevenue, 2), 'paid invoices', 'text-purple-600'],
-                ['Total Revenue', '₹'.number_format($totalRevenue, 2), 'all time', 'text-amber-600'],
+                ['Total Pharmacies', $totalPharmacies, $activePharmacies.' active', 'text-primary'],
+                ['Active Subscriptions', $activeSubs, $trialSubs.' on trial', 'text-tertiary'],
             ];
+            // Revenue figures are billing data — hide from admins without that capability.
+            if (auth()->user()->hasAdminCapability(\App\Support\AdminCapability::BILLING)) {
+                $cards[] = ['Revenue (This Month)', '₹'.number_format($monthlyRevenue, 2), 'paid invoices', 'text-secondary'];
+                $cards[] = ['Total Revenue', '₹'.number_format($totalRevenue, 2), 'all time', 'text-amber-600'];
+            }
         @endphp
         @foreach($cards as [$label, $value, $sub, $color])
-            <div class="bg-white rounded-2xl border border-gray-200 p-5">
-                <p class="text-sm text-gray-500">{{ $label }}</p>
-                <p class="mt-2 text-3xl font-bold {{ $color }}">{{ $value }}</p>
-                <p class="mt-1 text-xs text-gray-400">{{ $sub }}</p>
+            <div class="card card-pad">
+                <p class="text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant">{{ $label }}</p>
+                <p class="mt-1 text-2xl font-bold {{ $color }}">{{ $value }}</p>
+                <p class="mt-1 text-xs text-on-surface-variant">{{ $sub }}</p>
             </div>
         @endforeach
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+    <div class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
         {{-- Recent pharmacies --}}
-        <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="font-semibold text-gray-900">Recent Pharmacies</h2>
-                <a href="{{ route('superadmin.pharmacies.index') }}" class="text-sm text-blue-600 hover:underline">View all</a>
+        @if(auth()->user()->hasAdminCapability(\App\Support\AdminCapability::PHARMACIES))
+        <div class="card overflow-hidden lg:col-span-2">
+            <div class="card-header">
+                <h2 class="section-title">Recent Pharmacies</h2>
+                <a href="{{ route('superadmin.pharmacies.index') }}" class="text-sm font-semibold text-primary hover:underline">View all</a>
             </div>
             <div class="overflow-x-auto">
-                <table class="min-w-full text-sm">
-                    <thead class="text-left text-gray-500 border-b border-gray-100">
-                        <tr><th class="py-2 pr-4">Pharmacy</th><th class="py-2 pr-4">Plan</th><th class="py-2 pr-4">Status</th><th class="py-2 pr-4">Joined</th></tr>
+                <table class="table-saas">
+                    <thead>
+                        <tr><th>Pharmacy</th><th>Plan</th><th>Status</th><th>Joined</th></tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100">
+                    <tbody>
                         @forelse($recentPharmacies as $pharmacy)
                             <tr>
-                                <td class="py-3 pr-4">
-                                    <a href="{{ route('superadmin.pharmacies.show', $pharmacy) }}" class="font-medium text-gray-900 hover:text-blue-600">{{ $pharmacy->name }}</a>
-                                    <div class="text-xs text-gray-400">{{ $pharmacy->email }}</div>
+                                <td>
+                                    <a href="{{ route('superadmin.pharmacies.show', $pharmacy) }}" class="font-medium text-on-surface hover:text-primary">{{ $pharmacy->name }}</a>
+                                    <div class="text-xs text-on-surface-variant">{{ $pharmacy->email }}</div>
                                 </td>
-                                <td class="py-3 pr-4">{{ $pharmacy->currentSubscription?->plan?->name ?? '—' }}</td>
-                                <td class="py-3 pr-4">
-                                    <span class="inline-flex px-2 py-0.5 rounded-full text-xs {{ $pharmacy->isActive() ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">{{ ucfirst($pharmacy->status) }}</span>
-                                </td>
-                                <td class="py-3 pr-4 text-gray-500">{{ $pharmacy->created_at->format('d M Y') }}</td>
+                                <td>{{ $pharmacy->currentSubscription?->plan?->name ?? '—' }}</td>
+                                <td><span class="badge {{ $pharmacy->isActive() ? 'badge-success' : 'badge-danger' }}">{{ ucfirst($pharmacy->status) }}</span></td>
+                                <td class="text-on-surface-variant">{{ $pharmacy->created_at->format('d M Y') }}</td>
                             </tr>
                         @empty
-                            <tr><td colspan="4" class="py-6 text-center text-gray-400">No pharmacies yet.</td></tr>
+                            <tr><td colspan="4"><div class="empty-state">No pharmacies yet.</div></td></tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
         </div>
+        @endif
 
         {{-- Plan distribution --}}
-        <div class="bg-white rounded-2xl border border-gray-200 p-6">
-            <h2 class="font-semibold text-gray-900 mb-4">Plan Distribution</h2>
+        @if(auth()->user()->hasAdminCapability(\App\Support\AdminCapability::BILLING))
+        <div class="card card-pad">
+            <h2 class="section-title mb-4">Plan Distribution</h2>
             <div class="space-y-3">
                 @forelse($planDistribution as $row)
                     <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-700">{{ $row->plan?->name ?? 'Unknown' }}</span>
-                        <span class="font-semibold text-gray-900">{{ $row->total }}</span>
+                        <span class="text-on-surface">{{ $row->plan?->name ?? 'Unknown' }}</span>
+                        <span class="font-semibold text-on-surface">{{ $row->total }}</span>
                     </div>
                 @empty
-                    <p class="text-sm text-gray-400">No active subscriptions.</p>
+                    <p class="text-sm text-on-surface-variant">No active subscriptions.</p>
                 @endforelse
             </div>
         </div>
+        @endif
     </div>
 @endsection

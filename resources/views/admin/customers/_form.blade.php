@@ -1,8 +1,8 @@
 @php($customer = $customer ?? null)
 
 @if ($errors->any())
-    <div class="rounded border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-        <ul class="list-disc pl-5 space-y-1">
+    <div class="rounded-lg border border-error/30 bg-error-container/40 p-3 text-sm text-on-error-container">
+        <ul class="list-disc space-y-1 pl-5">
             @foreach ($errors->all() as $error)
                 <li>{{ $error }}</li>
             @endforeach
@@ -10,28 +10,25 @@
     </div>
 @endif
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
     <div>
-        <label class="block text-sm font-medium mb-1">Name <span class="text-rose-500">*</span></label>
-        <input type="text" name="name" value="{{ old('name', $customer->name ?? '') }}"
-               class="w-full border rounded px-3 py-2" required>
+        <label class="form-label">Name <span class="text-error">*</span></label>
+        <input type="text" name="name" value="{{ old('name', $customer->name ?? '') }}" class="form-input" required>
     </div>
 
     <div>
-        <label class="block text-sm font-medium mb-1">Phone</label>
-        <input type="text" name="phone" value="{{ old('phone', $customer->phone ?? '') }}"
-               class="w-full border rounded px-3 py-2">
+        <label class="form-label">Phone</label>
+        <input type="text" name="phone" value="{{ old('phone', $customer->phone ?? '') }}" class="form-input">
     </div>
 
     <div>
-        <label class="block text-sm font-medium mb-1">Email</label>
-        <input type="email" name="email" value="{{ old('email', $customer->email ?? '') }}"
-               class="w-full border rounded px-3 py-2">
+        <label class="form-label">Email</label>
+        <input type="email" name="email" value="{{ old('email', $customer->email ?? '') }}" class="form-input">
     </div>
 
     <div>
-        <label class="block text-sm font-medium mb-1">Gender</label>
-        <select name="gender" class="w-full border rounded px-3 py-2">
+        <label class="form-label">Gender</label>
+        <select name="gender" class="form-select">
             <option value="">—</option>
             @foreach (['male' => 'Male', 'female' => 'Female', 'other' => 'Other'] as $value => $label)
                 <option value="{{ $value }}" @selected(old('gender', $customer->gender ?? '') === $value)>{{ $label }}</option>
@@ -40,15 +37,12 @@
     </div>
 
     <div>
-        <label class="block text-sm font-medium mb-1">Date of Birth</label>
-        <input type="date" name="dob"
-               value="{{ old('dob', optional($customer->dob ?? null)->toDateString()) }}"
-               class="w-full border rounded px-3 py-2">
+        <label class="form-label">Date of Birth</label>
+        <input type="date" name="dob" value="{{ old('dob', optional($customer->dob ?? null)->toDateString()) }}" class="form-input">
     </div>
 
     <div class="md:col-span-2">
-        <label class="block text-sm font-medium mb-1">Address</label>
-        <textarea name="address" rows="3"
-                  class="w-full border rounded px-3 py-2">{{ old('address', $customer->address ?? '') }}</textarea>
+        <label class="form-label">Address</label>
+        <textarea name="address" rows="3" class="form-textarea">{{ old('address', $customer->address ?? '') }}</textarea>
     </div>
 </div>

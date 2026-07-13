@@ -2,20 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Coupon;
 use App\Models\Invoice;
 use App\Models\Pharmacy;
 use App\Models\Plan;
 use App\Models\Subscription;
 use App\Services\BillingService;
+use App\Services\PlatformSettings;
 use App\Services\RazorpayService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class SubscriptionController extends Controller
 {
     public function __construct(
         private readonly RazorpayService $razorpay,
         private readonly BillingService $billing,
+        private readonly PlatformSettings $settings,
     ) {
     }
 
@@ -35,6 +39,7 @@ class SubscriptionController extends Controller
             'plans'               => $plans,
             'invoices'            => $invoices,
             'pharmacy'            => $pharmacy,
+            'couponsEnabled'      => $this->settings->bool('feature_coupons'),
         ]);
     }
 
@@ -48,18 +53,26 @@ class SubscriptionController extends Controller
         $validated = $request->validate([
             'plan_id'       => ['required', 'exists:plans,id'],
             'billing_cycle' => ['required', 'in:monthly,quarterly,yearly'],
+            'coupon_code'   => ['nullable', 'string', 'max:40'],
         ]);
 
         $plan     = Plan::active()->findOrFail($validated['plan_id']);
         $pharmacy = auth()->user()->pharmacy;
         $cycle    = $validated['billing_cycle'];
-        $amount   = $plan->priceFor($cycle);
+
+        // Validate the coupon up front (throws a friendly error back to the billing
+        // page if invalid) and discount the amount the gateway will charge.
+        $coupon = $this->validateCoupon($request->input('coupon_code'));
+        $amount = $plan->priceFor($cycle);
+        if ($coupon) {
+            $amount = round($amount - $coupon->discountFor($amount), 2);
+        }
 
         if (! $this->razorpay->isConfigured()) {
             // Dev fallback — no gateway keys present. Activate immediately with a
             // synthetic transaction id so the rest of the app can be exercised.
             $this->billing->activatePaidSubscription(
-                $pharmacy, $plan, $cycle, 'dev_' . uniqid(), null
+                $pharmacy, $plan, $cycle, 'dev_' . uniqid(), null, $coupon
             );
 
             return redirect()
@@ -70,16 +83,22 @@ class SubscriptionController extends Controller
         $order = $this->razorpay->createOrder(
             $amount,
             receipt: 'sub_' . $pharmacy->id . '_' . now()->timestamp,
-            notes: ['pharmacy_id' => $pharmacy->id, 'plan_id' => $plan->id, 'cycle' => $cycle],
+            notes: array_filter([
+                'pharmacy_id' => $pharmacy->id,
+                'plan_id'     => $plan->id,
+                'cycle'       => $cycle,
+                'coupon'      => $coupon?->code,
+            ]),
         );
 
         return view('pharmacy.subscription.checkout', [
-            'order'    => $order,
-            'plan'     => $plan,
-            'cycle'    => $cycle,
-            'amount'   => $amount,
-            'razorKey' => $this->razorpay->publishableKey(),
-            'pharmacy' => $pharmacy,
+            'order'      => $order,
+            'plan'       => $plan,
+            'cycle'      => $cycle,
+            'amount'     => $amount,
+            'couponCode' => $coupon?->code,
+            'razorKey'   => $this->razorpay->publishableKey(),
+            'pharmacy'   => $pharmacy,
         ]);
     }
 
@@ -95,6 +114,7 @@ class SubscriptionController extends Controller
             'razorpay_signature'  => ['required', 'string'],
             'plan_id'             => ['required', 'exists:plans,id'],
             'billing_cycle'       => ['required', 'in:monthly,quarterly,yearly'],
+            'coupon_code'         => ['nullable', 'string', 'max:40'],
         ]);
 
         $ok = $this->razorpay->verifyPaymentSignature(
@@ -118,6 +138,9 @@ class SubscriptionController extends Controller
             $validated['billing_cycle'],
             $validated['razorpay_payment_id'],
             $validated['razorpay_order_id'],
+            // Payment is already captured — resolve leniently so a coupon that
+            // lapsed in the seconds since checkout still honours the quoted price.
+            $this->resolveCoupon($validated['coupon_code'] ?? null),
         );
 
         return redirect()
@@ -151,7 +174,8 @@ class SubscriptionController extends Controller
 
             if ($pharmacy && $plan && ! empty($entity['id'])) {
                 $this->billing->activatePaidSubscription(
-                    $pharmacy, $plan, $cycle, $entity['id'], $entity['order_id'] ?? null
+                    $pharmacy, $plan, $cycle, $entity['id'], $entity['order_id'] ?? null,
+                    $this->resolveCoupon($notes['coupon'] ?? null)
                 );
             } else {
                 Log::warning('Razorpay webhook missing pharmacy/plan notes', ['notes' => $notes]);
@@ -159,5 +183,53 @@ class SubscriptionController extends Controller
         }
 
         return response()->json(['status' => 'ok']);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Coupons
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Strict, pre-payment validation used by subscribe(): rejects the request with
+     * a friendly error when a code is supplied but the feature is off, or the code
+     * is unknown / expired / depleted. Returns null when no code was entered.
+     */
+    private function validateCoupon(?string $code): ?Coupon
+    {
+        $code = trim((string) $code);
+
+        if ($code === '') {
+            return null;
+        }
+
+        if (! $this->settings->bool('feature_coupons')) {
+            throw ValidationException::withMessages(['coupon_code' => 'Coupons are not available right now.']);
+        }
+
+        $coupon = Coupon::findByCode($code);
+
+        if (! $coupon || ! $coupon->isRedeemable()) {
+            throw ValidationException::withMessages(['coupon_code' => 'This coupon code is invalid or has expired.']);
+        }
+
+        return $coupon;
+    }
+
+    /**
+     * Lenient, post-payment resolution used by callback()/webhook(): the money is
+     * already captured, so we look the code up without re-validating redeemability
+     * (never throwing). Returns null when the feature is off or the code is unknown.
+     */
+    private function resolveCoupon(?string $code): ?Coupon
+    {
+        $code = trim((string) $code);
+
+        if ($code === '' || ! $this->settings->bool('feature_coupons')) {
+            return null;
+        }
+
+        return Coupon::findByCode($code);
     }
 }

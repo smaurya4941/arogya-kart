@@ -14,9 +14,14 @@ class Invoice extends Model
 {
     use BelongsToPharmacy;
 
-    public const STATUS_PENDING = 'pending';
-    public const STATUS_PAID    = 'paid';
-    public const STATUS_FAILED  = 'failed';
+    public const STATUS_PENDING  = 'pending';
+    public const STATUS_PAID     = 'paid';
+    public const STATUS_FAILED   = 'failed';
+    public const STATUS_REFUNDED = 'refunded';
+    public const STATUS_VOID     = 'void';
+
+    /** Statuses that count toward recognised revenue. */
+    public const REVENUE_STATUSES = [self::STATUS_PAID];
 
     protected $fillable = [
         'pharmacy_id',

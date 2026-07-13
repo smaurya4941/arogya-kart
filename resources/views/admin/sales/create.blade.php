@@ -11,8 +11,8 @@
      @keydown.window.f2.prevent="$refs.search.focus()">
 
     @if ($errors->any())
-        <div class="rounded border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700 mb-4">
-            <ul class="list-disc pl-5 space-y-1">
+        <div class="mb-4 rounded-lg border border-error/30 bg-error-container/40 p-3 text-sm text-on-error-container">
+            <ul class="list-disc space-y-1 pl-5">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
@@ -20,37 +20,37 @@
         </div>
     @endif
 
-    <div class="flex items-center justify-between mb-4">
+    <div class="page-header mb-4">
         <div>
-            <h1 class="text-2xl font-bold">Point of Sale</h1>
-            <p class="text-sm text-gray-600">Search a medicine (or press <kbd class="px-1 border rounded">F2</kbd>), add to cart, take payment.</p>
+            <h1 class="page-title">Point of Sale</h1>
+            <p class="page-subtitle">Search a medicine (or press <kbd class="rounded border border-outline-variant/50 px-1">F2</kbd>), add to cart, take payment.</p>
         </div>
-        <a href="{{ route('admin.sales.index') }}" class="px-4 py-2 rounded border">All Sales</a>
+        <a href="{{ route('admin.sales.index') }}" class="btn btn-outline">All Sales</a>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {{-- LEFT: search + cart --}}
-        <div class="lg:col-span-2 space-y-4">
+        <div class="space-y-4 lg:col-span-2">
             {{-- Search box --}}
-            <div class="bg-white shadow rounded p-4 relative">
-                <label class="block text-sm font-medium mb-1">Find medicine</label>
+            <div class="card card-pad relative">
+                <label class="form-label">Find medicine</label>
                 <input type="text" x-ref="search" x-model="term"
                        @input.debounce.250ms="search()"
                        @keydown.enter.prevent="results.length && addToCart(results[0])"
                        @keydown.escape="results = []"
                        placeholder="Type name, SKU or scan barcode…"
-                       class="w-full border rounded px-3 py-2" autocomplete="off">
+                       class="form-input" autocomplete="off">
 
-                <div x-show="loading" class="absolute right-6 top-9 text-xs text-gray-400">searching…</div>
+                <div x-show="loading" class="absolute right-8 top-10 text-xs text-on-surface-variant">searching…</div>
 
                 <ul x-show="results.length" x-cloak
-                    class="absolute z-20 left-4 right-4 mt-1 bg-white border rounded shadow-lg max-h-72 overflow-y-auto">
+                    class="absolute left-4 right-4 z-20 mt-1 max-h-72 overflow-y-auto rounded-lg border border-outline-variant/40 bg-white shadow-lg">
                     <template x-for="p in results" :key="p.id">
                         <li @click="addToCart(p)"
-                            class="px-3 py-2 hover:bg-emerald-50 cursor-pointer flex items-center justify-between">
+                            class="flex cursor-pointer items-center justify-between px-3 py-2 hover:bg-primary/5">
                             <div>
-                                <p class="font-medium text-sm" x-text="p.name"></p>
-                                <p class="text-xs text-gray-500">
+                                <p class="text-sm font-medium" x-text="p.name"></p>
+                                <p class="text-xs text-on-surface-variant">
                                     <span x-text="p.sku"></span> ·
                                     <span x-text="'Stock: ' + p.stock"></span> ·
                                     <span x-text="'Exp: ' + (p.nearest_expiry || '—')"></span>
@@ -61,53 +61,57 @@
                     </template>
                 </ul>
                 <p x-show="term.length > 1 && !loading && !results.length" x-cloak
-                   class="text-xs text-gray-400 mt-2">No in-stock matches.</p>
+                   class="mt-2 text-xs text-on-surface-variant">No in-stock matches.</p>
             </div>
 
             {{-- Cart --}}
-            <div class="bg-white shadow rounded">
+            <div class="card overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="min-w-full text-sm">
-                        <thead class="bg-gray-50 text-left">
+                    <table class="table-saas">
+                        <thead>
                             <tr>
-                                <th class="p-3">Medicine</th>
-                                <th class="p-3 w-24">Price</th>
-                                <th class="p-3 w-24">Qty</th>
-                                <th class="p-3 w-24">Disc %</th>
-                                <th class="p-3 w-16">GST %</th>
-                                <th class="p-3 w-28 text-right">Total</th>
-                                <th class="p-3 w-8"></th>
+                                <th>Medicine</th>
+                                <th class="w-24">Price</th>
+                                <th class="w-24">Qty</th>
+                                <th class="w-24">Disc %</th>
+                                <th class="w-16">GST %</th>
+                                <th class="w-28 text-right">Total</th>
+                                <th class="w-8"></th>
                             </tr>
                         </thead>
                         <tbody>
                             <template x-for="(item, i) in cart" :key="item.id">
-                                <tr class="border-t align-middle">
-                                    <td class="p-3">
+                                <tr class="align-middle">
+                                    <td>
                                         <p class="font-medium" x-text="item.name"></p>
-                                        <p class="text-xs text-gray-500">
+                                        <p class="text-xs text-on-surface-variant">
                                             <span x-text="item.sku"></span> ·
                                             <span x-text="'in stock: ' + item.stock"></span>
                                         </p>
                                     </td>
-                                    <td class="p-3">₹<span x-text="Number(item.price).toFixed(2)"></span></td>
-                                    <td class="p-3">
+                                    <td>₹<span x-text="Number(item.price).toFixed(2)"></span></td>
+                                    <td>
                                         <input type="number" min="1" :max="item.stock" x-model.number="item.qty"
-                                               @input="clampQty(item)"
-                                               class="w-20 border rounded px-2 py-1">
+                                               @input="clampQty(item)" class="form-input h-8 w-20">
                                     </td>
-                                    <td class="p-3">
+                                    <td>
                                         <input type="number" min="0" max="100" step="0.01" x-model.number="item.discount"
-                                               class="w-20 border rounded px-2 py-1">
+                                               class="form-input h-8 w-20">
                                     </td>
-                                    <td class="p-3 text-gray-600" x-text="Number(item.gst).toFixed(0)"></td>
-                                    <td class="p-3 text-right font-medium">₹<span x-text="lineTotal(item).toFixed(2)"></span></td>
-                                    <td class="p-3">
-                                        <button type="button" @click="removeItem(i)" class="text-rose-600 hover:underline">✕</button>
+                                    <td class="text-on-surface-variant" x-text="Number(item.gst).toFixed(0)"></td>
+                                    <td class="text-right font-medium">₹<span x-text="lineTotal(item).toFixed(2)"></span></td>
+                                    <td>
+                                        <button type="button" @click="removeItem(i)" class="btn-icon hover:text-error">✕</button>
                                     </td>
                                 </tr>
                             </template>
                             <tr x-show="!cart.length">
-                                <td colspan="7" class="p-6 text-center text-gray-400">Cart is empty. Search to add medicines.</td>
+                                <td colspan="7">
+                                    <div class="empty-state">
+                                        <span class="material-symbols-outlined text-[32px] opacity-40">shopping_cart</span>
+                                        Cart is empty. Search to add medicines.
+                                    </div>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -118,14 +122,14 @@
         {{-- RIGHT: checkout --}}
         <div class="space-y-4">
             <form method="POST" action="{{ route('admin.sales.store') }}" @submit="prepare($event)"
-                  class="bg-white shadow rounded p-5 space-y-4">
+                  class="card card-pad space-y-4">
                 @csrf
                 <input type="hidden" name="items_json" x-ref="itemsJson">
                 <input type="hidden" name="action" x-ref="action">
 
                 <div>
-                    <label class="block text-sm font-medium mb-1">Customer</label>
-                    <select name="customer_id" x-model="customerId" class="w-full border rounded px-3 py-2">
+                    <label class="form-label">Customer</label>
+                    <select name="customer_id" x-model="customerId" class="form-select">
                         <option value="">Walk-in customer</option>
                         @foreach ($customers as $customer)
                             <option value="{{ $customer->id }}">
@@ -134,12 +138,12 @@
                         @endforeach
                     </select>
                     <a href="{{ route('admin.customers.create') }}" target="_blank"
-                       class="text-xs text-emerald-700 hover:underline">+ Add new customer</a>
+                       class="mt-1 inline-block text-xs font-medium text-primary hover:underline">+ Add new customer</a>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium mb-1">Payment Method</label>
-                    <select name="payment_method" x-model="paymentMethod" class="w-full border rounded px-3 py-2">
+                    <label class="form-label">Payment Method</label>
+                    <select name="payment_method" x-model="paymentMethod" class="form-select">
                         <option value="cash">Cash</option>
                         <option value="card">Card</option>
                         <option value="upi">UPI</option>
@@ -147,48 +151,41 @@
                     </select>
                 </div>
 
-                <div class="border-t pt-3 space-y-2 text-sm">
-                    <div class="flex justify-between"><span class="text-gray-500">Subtotal</span><span>₹<span x-text="subtotal().toFixed(2)"></span></span></div>
-                    <div class="flex justify-between"><span class="text-gray-500">GST</span><span>₹<span x-text="taxTotal().toFixed(2)"></span></span></div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-500">Bill Discount ₹</span>
+                <div class="space-y-2 border-t border-outline-variant/30 pt-3 text-sm">
+                    <div class="flex justify-between"><span class="text-on-surface-variant">Subtotal</span><span>₹<span x-text="subtotal().toFixed(2)"></span></span></div>
+                    <div class="flex justify-between"><span class="text-on-surface-variant">GST</span><span>₹<span x-text="taxTotal().toFixed(2)"></span></span></div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-on-surface-variant">Bill Discount ₹</span>
                         <input type="number" min="0" step="0.01" name="discount_amount" x-model.number="headerDiscount"
-                               class="w-28 border rounded px-2 py-1 text-right">
+                               class="form-input h-8 w-28 text-right">
                     </div>
-                    <div class="flex justify-between text-lg font-bold border-t pt-2">
+                    <div class="flex justify-between border-t border-outline-variant/30 pt-2 text-lg font-bold">
                         <span>Grand Total</span><span>₹<span x-text="grandTotal().toFixed(2)"></span></span>
                     </div>
                 </div>
 
-                <div class="border-t pt-3 space-y-2 text-sm">
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-500">Amount Paid ₹</span>
+                <div class="space-y-2 border-t border-outline-variant/30 pt-3 text-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="text-on-surface-variant">Amount Paid ₹</span>
                         <input type="number" min="0" step="0.01" name="paid_amount" x-model.number="paidAmount"
-                               @input="paidTouched = true"
-                               class="w-28 border rounded px-2 py-1 text-right">
+                               @input="paidTouched = true" class="form-input h-8 w-28 text-right">
                     </div>
                     <div class="flex justify-between" x-show="change() > 0" x-cloak>
-                        <span class="text-gray-500">Change to return</span><span class="text-emerald-600 font-semibold">₹<span x-text="change().toFixed(2)"></span></span>
+                        <span class="text-on-surface-variant">Change to return</span><span class="font-semibold text-tertiary">₹<span x-text="change().toFixed(2)"></span></span>
                     </div>
                     <div class="flex justify-between" x-show="due() > 0" x-cloak>
-                        <span class="text-gray-500">Balance due</span><span class="text-rose-600 font-semibold">₹<span x-text="due().toFixed(2)"></span></span>
+                        <span class="text-on-surface-variant">Balance due</span><span class="font-semibold text-error">₹<span x-text="due().toFixed(2)"></span></span>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium mb-1">Notes</label>
-                    <input type="text" name="notes" x-model="notes" class="w-full border rounded px-3 py-2" placeholder="Optional">
+                    <label class="form-label">Notes</label>
+                    <input type="text" name="notes" x-model="notes" class="form-input" placeholder="Optional">
                 </div>
 
-                <div class="grid grid-cols-2 gap-3 pt-2">
-                    <button type="submit" @click="actionType = 'save'" :disabled="!cart.length"
-                            class="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 disabled:opacity-40">
-                        Save Bill
-                    </button>
-                    <button type="submit" @click="actionType = 'save_print'" :disabled="!cart.length"
-                            class="bg-slate-800 text-white px-4 py-2 rounded hover:bg-slate-900 disabled:opacity-40">
-                        Save &amp; Print
-                    </button>
+                <div class="grid grid-cols-2 gap-2 pt-2">
+                    <button type="submit" @click="actionType = 'save'" :disabled="!cart.length" class="btn btn-primary">Save Bill</button>
+                    <button type="submit" @click="actionType = 'save_print'" :disabled="!cart.length" class="btn btn-outline">Save &amp; Print</button>
                 </div>
             </form>
         </div>

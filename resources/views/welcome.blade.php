@@ -1,269 +1,521 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="light scroll-smooth">
+<html class="light" lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ config('app.name', 'PharmaFlow') }} | Enterprise Pharmacy SaaS</title>
-
-    <!-- Fonts & Icons (Matching Dashboard) -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-
-    <style>
-        body { background-color: #f8f9ff; font-family: 'Geist', sans-serif; }
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>{{ config('app.name', 'ArogyaKart') }} | Modern Pharmacy Management SaaS</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=JetBrains+Mono&amp;family=Geist:wght@400;600;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style>
         .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-            vertical-align: middle;
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+            font-size: 20px;
         }
-        .active-icon { font-variation-settings: 'FILL' 1; }
-        .glass-nav {
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid #bcc9c6;
         }
-        
-        /* Decorative Background Elements */
-        .bg-blob {
-            position: absolute;
-            filter: blur(80px);
-            z-index: -1;
-            opacity: 0.5;
-            animation: float 10s ease-in-out infinite;
+        .dashboard-grid {
+            background-image: radial-gradient(#bcc9c6 1px, transparent 1px);
+            background-size: 20px 20px;
         }
-        @keyframes float {
-            0% { transform: translateY(0px) scale(1); }
-            50% { transform: translateY(-20px) scale(1.05); }
-            100% { transform: translateY(0px) scale(1); }
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
-
-        /* Ripple effect */
-        .ripple {
-            position: absolute;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(0);
-            animation: ripple 0.6s linear;
-            pointer-events: none;
-        }
-        @keyframes ripple {
-            to { transform: scale(4); opacity: 0; }
-        }
-        button, .btn-ripple { position: relative; overflow: hidden; }
+        html { scroll-behavior: smooth; }
     </style>
-
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body class="font-body-md text-on-surface antialiased relative min-h-screen flex flex-col overflow-x-hidden">
-
-    <!-- Decorative Background Blobs -->
-    <div class="bg-blob bg-primary/20 w-[600px] h-[600px] rounded-full top-[-200px] left-[-200px]"></div>
-    <div class="bg-blob bg-secondary/20 w-[500px] h-[500px] rounded-full bottom-0 right-[-100px]" style="animation-delay: 2s;"></div>
-    <div class="bg-blob bg-tertiary-fixed-dim/20 w-[400px] h-[400px] rounded-full top-[30%] left-[60%]" style="animation-delay: 5s;"></div>
-
-    <!-- Navigation -->
-    <header class="fixed top-0 w-full z-50 glass-nav bg-white/60 border-b border-outline-variant/20 transition-all duration-300">
-        <div class="mx-auto max-w-7xl px-6 lg:px-8">
-            <div class="flex h-20 items-center justify-between">
-                <!-- Logo -->
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-on-primary shadow-lg shadow-primary/20">
-                        <span class="material-symbols-outlined text-title-lg" style="font-variation-settings: 'FILL' 1;">medical_services</span>
-                    </div>
-                    <a href="{{ url('/') }}" class="group">
-                        <h1 class="font-headline-md text-headline-md font-bold text-primary leading-tight group-hover:opacity-80 transition-opacity">PharmaFlow</h1>
-                        <p class="text-[10px] font-bold text-on-surface-variant/70 uppercase tracking-[0.2em]">Enterprise Suite</p>
-                    </a>
-                </div>
-
-                <!-- Desktop Nav -->
-                <nav class="hidden md:flex items-center gap-8">
-                    <a href="#features" class="text-label-md font-bold text-on-surface-variant hover:text-primary transition-colors tracking-wide">FEATURES</a>
-                    <a href="#benefits" class="text-label-md font-bold text-on-surface-variant hover:text-primary transition-colors tracking-wide">BENEFITS</a>
-                    <a href="#pricing" class="text-label-md font-bold text-on-surface-variant hover:text-primary transition-colors tracking-wide">PRICING</a>
-                </nav>
-
-                <!-- Auth Actions -->
-                <div class="flex items-center gap-4">
-                    @if (Route::has('login'))
-                        @auth
-                            <a href="{{ url('/dashboard') }}" class="btn-ripple hidden sm:flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-label-md font-bold text-on-primary shadow-lg shadow-primary/20 hover:opacity-90 active:scale-95 transition-all">
-                                Go to Dashboard
-                                <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
-                            </a>
-                        @else
-                            <a href="{{ route('login') }}" class="text-label-md font-bold text-on-surface hover:text-primary transition-colors px-2">
-                                Sign In
-                            </a>
-                            @if (Route::has('register'))
-                                <a href="{{ route('register') }}" class="btn-ripple hidden sm:flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-label-md font-bold text-on-primary shadow-lg shadow-primary/20 hover:opacity-90 active:scale-95 transition-all">
-                                    Get Started
-                                </a>
-                            @endif
-                        @endauth
-                    @endif
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="flex-1 flex flex-col justify-center pt-32 pb-16 lg:pt-48 lg:pb-24">
-        <!-- Hero Section -->
-        <section class="relative mx-auto max-w-7xl px-6 lg:px-8 text-center">
-            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface-container border border-outline-variant/30 text-primary font-bold text-label-md mb-8 mx-auto shadow-sm">
-                <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-                PharmaFlow v2.0 is now live
-            </div>
-            
-            <h1 class="font-display-lg text-4xl sm:text-6xl lg:text-7xl font-bold text-on-surface tracking-tight mb-8 leading-[1.1]">
-                Modernize Your <br class="hidden sm:block"/>
-                <span class="text-primary relative inline-block">
-                    Pharmacy Operations
-                    <svg class="absolute w-full h-3 -bottom-1 left-0 text-primary-fixed-dim/50" viewBox="0 0 100 10" preserveAspectRatio="none">
-                        <path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="4" fill="transparent"/>
-                    </svg>
-                </span>
-            </h1>
-            
-            <p class="font-body-lg text-lg sm:text-xl text-on-surface-variant max-w-2xl mx-auto mb-12 leading-relaxed">
-                An all-in-one enterprise suite designed specifically for retail pharmacies, clinics, and hospital dispensaries. Manage inventory, process billing, and gain actionable insights effortlessly.
-            </p>
-            
-            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <a href="{{ route('register') }}" class="btn-ripple w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-primary px-8 py-4 text-body-md font-bold text-on-primary shadow-xl shadow-primary/20 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/30 transition-all duration-300">
-                    Start Your Free Trial
-                    <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
-                </a>
-                <a href="#features" class="btn-ripple w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-white border border-outline-variant/30 px-8 py-4 text-body-md font-bold text-on-surface shadow-sm hover:bg-surface-container-low transition-all duration-300">
-                    <span class="material-symbols-outlined text-[20px]">play_circle</span>
-                    See How It Works
-                </a>
-            </div>
-
-            <!-- Dashboard Preview Image / Mockup -->
-            <div class="mt-20 lg:mt-24 relative mx-auto max-w-5xl">
-                <div class="rounded-2xl border border-outline-variant/30 bg-white/50 backdrop-blur-sm p-2 shadow-2xl overflow-hidden transform perspective-1000 rotate-x-2 hover:rotate-x-0 transition-transform duration-700 ease-out">
-                    <div class="rounded-xl border border-outline-variant/20 bg-surface-container-low overflow-hidden aspect-video flex items-center justify-center relative group">
-                        <div class="absolute inset-0 bg-gradient-to-tr from-primary/5 to-tertiary/5"></div>
-                        <!-- Abstract Dashboard Mockup -->
-                        <div class="w-full h-full p-4 sm:p-8 flex flex-col gap-4">
-                            <div class="h-12 w-full flex justify-between items-center border-b border-outline-variant/20 pb-4">
-                                <div class="w-32 h-6 bg-outline-variant/30 rounded-md"></div>
-                                <div class="flex gap-2">
-                                    <div class="w-8 h-8 rounded-full bg-outline-variant/30"></div>
-                                    <div class="w-8 h-8 rounded-full bg-primary/20"></div>
-                                </div>
-                            </div>
-                            <div class="flex gap-4 h-24">
-                                <div class="flex-1 bg-white rounded-lg shadow-sm border border-outline-variant/20 p-4 flex flex-col justify-between">
-                                    <div class="w-10 h-10 rounded-lg bg-primary/10"></div>
-                                    <div class="w-1/2 h-4 bg-outline-variant/30 rounded"></div>
-                                </div>
-                                <div class="flex-1 bg-white rounded-lg shadow-sm border border-outline-variant/20 p-4 flex flex-col justify-between">
-                                    <div class="w-10 h-10 rounded-lg bg-secondary/10"></div>
-                                    <div class="w-1/2 h-4 bg-outline-variant/30 rounded"></div>
-                                </div>
-                                <div class="hidden sm:flex flex-1 bg-white rounded-lg shadow-sm border border-outline-variant/20 p-4 flex flex-col justify-between">
-                                    <div class="w-10 h-10 rounded-lg bg-error/10"></div>
-                                    <div class="w-1/2 h-4 bg-outline-variant/30 rounded"></div>
-                                </div>
-                            </div>
-                            <div class="flex-1 flex gap-4">
-                                <div class="flex-[2] bg-white rounded-lg shadow-sm border border-outline-variant/20"></div>
-                                <div class="flex-[1] bg-white rounded-lg shadow-sm border border-outline-variant/20 hidden md:block"></div>
-                            </div>
-                        </div>
-                        
-                        <!-- Overlay Play Button -->
-                        <div class="absolute inset-0 flex items-center justify-center bg-on-background/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <button class="w-20 h-20 bg-white rounded-full flex items-center justify-center text-primary shadow-2xl transform scale-90 group-hover:scale-100 transition-transform duration-300">
-                                <span class="material-symbols-outlined text-[40px] ml-2 active-icon">play_arrow</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Features Section -->
-        <section id="features" class="relative py-24 sm:py-32">
-            <div class="mx-auto max-w-7xl px-6 lg:px-8">
-                <div class="text-center max-w-2xl mx-auto mb-16">
-                    <h2 class="font-headline-md text-primary font-bold tracking-wide uppercase text-label-md mb-2">Built for Scale</h2>
-                    <p class="font-display-lg text-3xl sm:text-4xl font-bold text-on-surface">Everything you need to run your pharmacy.</p>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <!-- Feature 1 -->
-                    <div class="bg-white p-8 rounded-2xl border border-outline-variant/30 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
-                        <div class="w-14 h-14 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-on-primary transition-colors">
-                            <span class="material-symbols-outlined text-[28px]">point_of_sale</span>
-                        </div>
-                        <h3 class="font-title-lg text-xl font-bold text-on-surface mb-3">Lightning Fast POS</h3>
-                        <p class="text-on-surface-variant leading-relaxed">Execute transactions in seconds with barcode scanning, instant GST calculation, and digital receipts.</p>
-                    </div>
-
-                    <!-- Feature 2 -->
-                    <div class="bg-white p-8 rounded-2xl border border-outline-variant/30 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
-                        <div class="w-14 h-14 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center mb-6 group-hover:bg-secondary group-hover:text-on-primary transition-colors">
-                            <span class="material-symbols-outlined text-[28px]">inventory_2</span>
-                        </div>
-                        <h3 class="font-title-lg text-xl font-bold text-on-surface mb-3">Smart Inventory</h3>
-                        <p class="text-on-surface-variant leading-relaxed">Automated low-stock alerts and proactive expiration tracking so you never run out or waste medicine.</p>
-                    </div>
-
-                    <!-- Feature 3 -->
-                    <div class="bg-white p-8 rounded-2xl border border-outline-variant/30 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
-                        <div class="w-14 h-14 rounded-xl bg-tertiary-container/10 text-tertiary flex items-center justify-center mb-6 group-hover:bg-tertiary group-hover:text-on-primary transition-colors">
-                            <span class="material-symbols-outlined text-[28px]">monitoring</span>
-                        </div>
-                        <h3 class="font-title-lg text-xl font-bold text-on-surface mb-3">Executive Analytics</h3>
-                        <p class="text-on-surface-variant leading-relaxed">Gain deep insights into your margins, top-selling products, and staff performance in real-time.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-white border-t border-outline-variant/30 py-12 mt-auto">
-        <div class="mx-auto max-w-7xl px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
-            <div class="flex items-center gap-3 opacity-80 hover:opacity-100 transition-opacity">
-                <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-on-primary shadow-sm">
-                    <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">medical_services</span>
-                </div>
-                <div>
-                    <h1 class="font-bold text-primary leading-none text-body-md">PharmaFlow</h1>
-                    <p class="text-[8px] font-bold text-on-surface-variant uppercase tracking-[0.2em]">Enterprise Suite</p>
-                </div>
-            </div>
-            
-            <p class="text-label-md text-on-surface-variant text-center md:text-left">
-                &copy; {{ date('Y') }} PharmaFlow Inc. All rights reserved. Built with precision.
-            </p>
-            
-            <div class="flex items-center gap-6">
-                <a href="#" class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined">language</span></a>
-                <a href="#" class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined">help</span></a>
-            </div>
-        </div>
-    </footer>
-
-    <script>
-        // Micro-interactions
-        document.querySelectorAll('.btn-ripple').forEach(elem => {
-            elem.addEventListener('mousedown', function(e) {
-                const rect = this.getBoundingClientRect();
-                const ripple = document.createElement('div');
-                ripple.classList.add('ripple');
-                
-                ripple.style.width = ripple.style.height = Math.max(rect.width, rect.height) + 'px';
-                ripple.style.left = e.clientX - rect.left - rect.width/2 + 'px';
-                ripple.style.top = e.clientY - rect.top - rect.height/2 + 'px';
-                
-                this.appendChild(ripple);
-                setTimeout(() => ripple.remove(), 600);
-            });
-        });
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              // Current ArogyaKart brand palette (kept as-is; only the landing structure is new).
+              "colors": {
+                "primary": "#00685f",
+                "on-primary": "#ffffff",
+                "primary-container": "#008378",
+                "on-primary-container": "#f4fffc",
+                "primary-fixed": "#89f5e7",
+                "primary-fixed-dim": "#6bd8cb",
+                "secondary": "#006398",
+                "on-secondary": "#ffffff",
+                "secondary-container": "#5bb8fe",
+                "secondary-fixed": "#cce5ff",
+                "secondary-fixed-dim": "#93ccff",
+                "tertiary": "#006b2d",
+                "on-tertiary": "#ffffff",
+                "tertiary-container": "#00873b",
+                "on-tertiary-container": "#f7fff3",
+                "tertiary-fixed": "#6bff8f",
+                "tertiary-fixed-dim": "#4ae176",
+                "background": "#f8f9ff",
+                "on-background": "#0b1c30",
+                "surface": "#f8f9ff",
+                "surface-bright": "#f8f9ff",
+                "surface-dim": "#cbdbf5",
+                "surface-variant": "#d3e4fe",
+                "on-surface": "#0b1c30",
+                "on-surface-variant": "#3d4947",
+                "outline": "#6d7a77",
+                "outline-variant": "#bcc9c6",
+                "surface-container-lowest": "#ffffff",
+                "surface-container-low": "#eff4ff",
+                "surface-container": "#e5eeff",
+                "surface-container-high": "#dce9ff",
+                "surface-container-highest": "#d3e4fe",
+                "inverse-surface": "#213145",
+                "inverse-on-surface": "#eaf1ff",
+                "inverse-primary": "#6bd8cb",
+                "error": "#ba1a1a",
+                "on-error": "#ffffff",
+                "error-container": "#ffdad6",
+                "on-error-container": "#93000a"
+              },
+              "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+              },
+              "spacing": {
+                "base": "4px",
+                "gutter": "16px",
+                "xs": "4px",
+                "sm": "8px",
+                "xl": "40px",
+                "md": "16px",
+                "lg": "24px",
+                "container-max": "1440px"
+              },
+              "fontFamily": {
+                "body-lg": ["Inter"],
+                "code-sm": ["JetBrains Mono"],
+                "headline-lg": ["Geist"],
+                "display": ["Geist"],
+                "headline-md": ["Geist"],
+                "body-md": ["Inter"],
+                "body-sm": ["Inter"],
+                "label-md": ["Inter"]
+              },
+              "fontSize": {
+                "body-lg": ["15px", {"lineHeight": "22px", "fontWeight": "400"}],
+                "code-sm": ["11px", {"lineHeight": "16px", "fontWeight": "400"}],
+                "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                "display": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                "headline-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                "body-md": ["13px", {"lineHeight": "20px", "fontWeight": "400"}],
+                "body-sm": ["12px", {"lineHeight": "18px", "fontWeight": "400"}],
+                "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
     </script>
-</body>
-</html>
+</head>
+<body class="bg-background text-on-surface font-body-md text-body-md">
+@php
+    $ctaUrl = auth()->check() ? route('dashboard') : route('register');
+    $ctaLabel = auth()->check() ? 'Go to Dashboard' : 'Get Started';
+@endphp
+<!-- TopNavBar -->
+<header class="bg-surface top-0 sticky z-50 border-b border-outline-variant">
+<nav class="flex justify-between items-center px-lg py-sm max-w-container-max mx-auto">
+<div class="flex items-center gap-md">
+<a href="{{ url('/') }}" class="flex items-center gap-sm font-headline-md text-headline-md font-bold text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">medical_services</span>
+{{ config('app.name', 'ArogyaKart') }}
+</a>
+</div>
+<div class="hidden md:flex items-center gap-lg">
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#features">Features</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#solutions">Solutions</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#pricing">Pricing</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#contact">Contact</a>
+</div>
+<div class="flex items-center gap-sm">
+<div class="hidden md:flex items-center gap-sm">
+@auth
+<a href="{{ route('dashboard') }}" class="bg-primary text-on-primary px-md py-xs rounded font-label-md text-label-md shadow-sm hover:bg-primary-container transition-colors">Dashboard</a>
+@else
+<a href="{{ route('login') }}" class="px-md py-xs font-label-md text-label-md text-primary hover:opacity-80 transition-opacity">Login</a>
+<a href="{{ route('register') }}" class="bg-primary text-on-primary px-md py-xs rounded font-label-md text-label-md shadow-sm hover:bg-primary-container transition-colors">Get Started</a>
+@endauth
+</div>
+<!-- Mobile menu toggle -->
+<button type="button" id="nav-toggle" aria-label="Toggle menu" aria-expanded="false" class="md:hidden inline-flex items-center justify-center h-9 w-9 rounded text-on-surface-variant hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined" id="nav-toggle-icon">menu</span>
+</button>
+</div>
+</nav>
+<!-- Mobile menu panel -->
+<div id="mobile-menu" class="hidden md:hidden border-t border-outline-variant bg-surface">
+<div class="flex flex-col px-lg py-sm gap-1">
+<a class="py-sm text-on-surface-variant hover:text-primary transition-colors" href="#features">Features</a>
+<a class="py-sm text-on-surface-variant hover:text-primary transition-colors" href="#solutions">Solutions</a>
+<a class="py-sm text-on-surface-variant hover:text-primary transition-colors" href="#pricing">Pricing</a>
+<a class="py-sm text-on-surface-variant hover:text-primary transition-colors" href="#contact">Contact</a>
+<div class="flex items-center gap-sm pt-sm mt-xs border-t border-outline-variant">
+@auth
+<a href="{{ route('dashboard') }}" class="flex-1 text-center bg-primary text-on-primary px-md py-sm rounded font-label-md text-label-md shadow-sm hover:bg-primary-container transition-colors">Dashboard</a>
+@else
+<a href="{{ route('login') }}" class="flex-1 text-center border border-outline-variant px-md py-sm rounded font-label-md text-label-md text-primary hover:bg-surface-container transition-colors">Login</a>
+<a href="{{ route('register') }}" class="flex-1 text-center bg-primary text-on-primary px-md py-sm rounded font-label-md text-label-md shadow-sm hover:bg-primary-container transition-colors">Get Started</a>
+@endauth
+</div>
+</div>
+</div>
+</header>
+<main>
+<!-- Hero Section -->
+<section class="relative pt-xl pb-24 overflow-hidden border-b border-outline-variant">
+<div class="max-w-container-max mx-auto px-lg relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-xl items-center">
+<div class="flex flex-col gap-md">
+<span class="text-primary font-label-md tracking-wider">ENTERPRISE PHARMACY OS</span>
+<h1 class="font-display text-display text-on-surface leading-tight">Modernizing Pharmacy Management.</h1>
+<p class="text-on-surface-variant text-body-lg max-w-md">Cloud-based SaaS for inventory, sales, and AI-driven insights. Built for precision and scale.</p>
+<div class="flex items-center gap-md mt-sm">
+<a href="{{ $ctaUrl }}" class="bg-primary text-on-primary h-8 px-md flex items-center justify-center font-label-md rounded shadow-md hover:brightness-110 transition-all">{{ auth()->check() ? 'Open Dashboard' : 'Start Free Trial' }}</a>
+<a href="#pricing" class="border border-outline-variant text-on-surface h-8 px-md flex items-center justify-center font-label-md rounded hover:bg-surface-container transition-all">Book Demo</a>
+</div>
+<div class="flex items-center gap-sm mt-md">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="text-body-sm text-on-surface-variant">HIPAA &amp; GDPR Compliant Security Architecture</span>
+</div>
+</div>
+<!-- UI Dashboard Mockup -->
+<div class="relative">
+<div class="glass-panel rounded-xl shadow-2xl p-sm overflow-hidden border border-outline-variant">
+<div class="bg-surface-container-low h-6 w-full flex items-center px-sm gap-1 border-b border-outline-variant">
+<div class="w-2 h-2 rounded-full bg-error opacity-50"></div>
+<div class="w-2 h-2 rounded-full bg-tertiary-container opacity-50"></div>
+<div class="w-2 h-2 rounded-full bg-secondary opacity-50"></div>
+<div class="ml-4 h-3 w-48 bg-outline-variant rounded-full opacity-30"></div>
+</div>
+<div class="grid grid-cols-4 h-80 dashboard-grid">
+<!-- Sidebar Mockup -->
+<div class="col-span-1 border-r border-outline-variant p-sm flex flex-col gap-xs">
+<div class="h-4 w-full bg-surface-container-highest rounded mb-sm"></div>
+<div class="h-4 w-10/12 bg-primary-container opacity-20 rounded"></div>
+<div class="h-4 w-9/12 bg-outline-variant opacity-10 rounded"></div>
+<div class="h-4 w-11/12 bg-outline-variant opacity-10 rounded"></div>
+<div class="mt-auto h-4 w-8/12 bg-outline-variant opacity-10 rounded"></div>
+</div>
+<!-- Content Mockup -->
+<div class="col-span-3 p-md flex flex-col gap-md">
+<div class="flex justify-between items-end">
+<div class="flex flex-col gap-1">
+<div class="h-2 w-16 bg-outline-variant opacity-40 rounded"></div>
+<div class="h-6 w-32 bg-on-surface opacity-80 rounded"></div>
+</div>
+<div class="h-8 w-24 bg-primary rounded"></div>
+</div>
+<div class="grid grid-cols-3 gap-sm">
+<div class="h-20 bg-white border border-outline-variant rounded p-xs flex flex-col justify-between">
+<div class="h-2 w-10 bg-error opacity-20 rounded"></div>
+<div class="h-6 w-14 bg-error opacity-80 rounded"></div>
+</div>
+<div class="h-20 bg-white border border-outline-variant rounded p-xs flex flex-col justify-between">
+<div class="h-2 w-10 bg-secondary opacity-20 rounded"></div>
+<div class="h-6 w-14 bg-secondary opacity-80 rounded"></div>
+</div>
+<div class="h-20 bg-white border border-outline-variant rounded p-xs flex flex-col justify-between">
+<div class="h-2 w-10 bg-primary opacity-20 rounded"></div>
+<div class="h-6 w-14 bg-primary opacity-80 rounded"></div>
+</div>
+</div>
+<div class="mt-xs h-24 w-full border border-outline-variant rounded bg-white p-sm overflow-hidden">
+<div class="flex items-end h-full gap-1">
+<div class="flex-1 bg-primary-container h-[40%]"></div>
+<div class="flex-1 bg-primary-container h-[60%]"></div>
+<div class="flex-1 bg-primary-container h-[45%]"></div>
+<div class="flex-1 bg-primary-container h-[80%]"></div>
+<div class="flex-1 bg-primary-container h-[65%]"></div>
+<div class="flex-1 bg-primary-container h-[90%]"></div>
+<div class="flex-1 bg-primary-container h-[70%]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Stats Bar -->
+<section class="bg-surface-container-low border-b border-outline-variant py-md">
+<div class="max-w-container-max mx-auto px-lg flex flex-wrap justify-between items-center gap-md">
+<div class="flex items-center gap-md">
+<span class="text-headline-lg font-display text-primary">2k+</span>
+<span class="text-body-sm text-on-surface-variant font-label-md uppercase tracking-wider">Active Pharmacies</span>
+</div>
+<div class="w-px h-8 bg-outline-variant hidden md:block"></div>
+<div class="flex items-center gap-md">
+<span class="text-headline-lg font-display text-primary">1M+</span>
+<span class="text-body-sm text-on-surface-variant font-label-md uppercase tracking-wider">Processed Invoices</span>
+</div>
+<div class="w-px h-8 bg-outline-variant hidden md:block"></div>
+<div class="flex items-center gap-md">
+<span class="text-headline-lg font-display text-primary">99.9%</span>
+<span class="text-body-sm text-on-surface-variant font-label-md uppercase tracking-wider">Uptime SLA</span>
+</div>
+<div class="w-px h-8 bg-outline-variant hidden md:block"></div>
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">security</span>
+<span class="text-body-sm text-on-surface-variant font-label-md uppercase tracking-wider">Tier-4 Datacenters</span>
+</div>
+</div>
+</section>
+<!-- Core Modules Grid -->
+<section id="features" class="py-xl bg-white scroll-mt-16">
+<div class="max-w-container-max mx-auto px-lg">
+<div class="flex flex-col gap-xs mb-xl">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Integrated Pharmacy Operations</h2>
+<p class="text-on-surface-variant text-body-md max-w-xl">Every tool your pharmacy needs to operate at peak efficiency, consolidated into a single high-performance interface.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg">
+<!-- Inventory -->
+<div class="p-lg border border-outline-variant hover:border-primary transition-all group">
+<div class="w-10 h-10 rounded bg-primary-fixed flex items-center justify-center mb-md group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-xs">Inventory &amp; Batch</h3>
+<p class="text-on-surface-variant text-body-sm leading-relaxed">Real-time stock tracking with automated expiry alerts and batch-level reconciliation.</p>
+</div>
+<!-- Sales -->
+<div class="p-lg border border-outline-variant hover:border-primary transition-all group">
+<div class="w-10 h-10 rounded bg-secondary-fixed flex items-center justify-center mb-md group-hover:bg-secondary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="point_of_sale">point_of_sale</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-xs">Sales &amp; Billing</h3>
+<p class="text-on-surface-variant text-body-sm leading-relaxed">Lightning-fast POS with GST compliance, insurance claims, and split-payment support.</p>
+</div>
+<!-- Supplier -->
+<div class="p-lg border border-outline-variant hover:border-primary transition-all group">
+<div class="w-10 h-10 rounded bg-tertiary-fixed flex items-center justify-center mb-md group-hover:bg-tertiary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="local_shipping">local_shipping</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-xs">Supplier Sync</h3>
+<p class="text-on-surface-variant text-body-sm leading-relaxed">Centralized procurement with automated PO generation and supplier performance analytics.</p>
+</div>
+<!-- AI Insights -->
+<div class="p-lg border border-outline-variant hover:border-primary transition-all group">
+<div class="w-10 h-10 rounded bg-surface-container-highest flex items-center justify-center mb-md group-hover:bg-on-surface group-hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="neurology">neurology</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-xs">AI Insights</h3>
+<p class="text-on-surface-variant text-body-sm leading-relaxed">ML-powered demand forecasting and smart reordering to prevent stock-outs.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- "Built for Growth" Section -->
+<section id="solutions" class="py-xl bg-surface-container-low border-y border-outline-variant scroll-mt-16">
+<div class="max-w-container-max mx-auto px-lg">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-xl items-center">
+<div class="aspect-video w-full rounded-lg shadow-lg border border-outline-variant bg-cover bg-center" data-alt="A clean, professional 3D isometric representation of interconnected pharmacy branches linked to a central cloud server." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDdRIg0FS0e9szU7tVdmWpg3iBMlhCwLU-Rz8z5RWZ3U9yKDGVgnmLvXWIWfICHABv0Xk4jyYVZ13u3qOK0HZwwUbaoXiXQdWuQ3H3vYA2A5mRXo6sjU2-dAmMeSoi77iL7Xxi6TXc1ZJEsW9Q22PtIzGKkKzs4TcQUKeXiOzA7CTqmwvrW5dJPMq3_xyFE-vv_vGWdU4T37mhL7JPiQ_7wqD6Ogt8t1YcSKPVbxHz9laHlBUuZfWALKcNCi-69irNZyoZYnUjXMpM')"></div>
+<div class="flex flex-col gap-md">
+<h2 class="font-display text-display text-on-surface">Architected for Multi-Branch Growth.</h2>
+<div class="space-y-md">
+<div class="flex gap-md">
+<div class="mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-secondary text-white flex items-center justify-center">
+<span class="material-symbols-outlined !text-[14px]">check</span>
+</div>
+<div>
+<h4 class="font-label-md text-on-surface">Centralized Control Tower</h4>
+<p class="text-body-sm text-on-surface-variant">Monitor sales, inventory levels, and staff performance across 100+ branches from a single dashboard.</p>
+</div>
+</div>
+<div class="flex gap-md">
+<div class="mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-secondary text-white flex items-center justify-center">
+<span class="material-symbols-outlined !text-[14px]">check</span>
+</div>
+<div>
+<h4 class="font-label-md text-on-surface">Bank-Grade Isolation</h4>
+<p class="text-body-sm text-on-surface-variant">Secure multi-tenant cloud architecture ensures your data is isolated, encrypted, and backed up hourly.</p>
+</div>
+</div>
+<div class="flex gap-md">
+<div class="mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-secondary text-white flex items-center justify-center">
+<span class="material-symbols-outlined !text-[14px]">check</span>
+</div>
+<div>
+<h4 class="font-label-md text-on-surface">Offline Resilience</h4>
+<p class="text-body-sm text-on-surface-variant">Continue billing even during internet outages. Local-first sync handles reconnection automatically.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Pricing Section -->
+<section id="pricing" class="py-xl bg-background scroll-mt-16">
+<div class="max-w-container-max mx-auto px-lg">
+<div class="text-center mb-xl">
+<h2 class="font-display text-display text-on-surface mb-xs">Scalable Pricing for Every Scale</h2>
+<p class="text-on-surface-variant text-body-md">Predictable monthly costs with no hidden implementation fees.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-lg max-w-5xl mx-auto">
+<!-- Starter -->
+<div class="bg-white border border-outline-variant p-lg flex flex-col gap-md">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Starter</h3>
+<div class="mt-xs flex items-baseline gap-1">
+<span class="text-display font-display text-primary">$49</span>
+<span class="text-body-sm text-on-surface-variant">/month</span>
+</div>
+</div>
+<ul class="flex flex-col gap-sm flex-grow">
+<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
+                                Single Branch Support
+                            </li>
+<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
+                                Up to 5,000 SKUs
+                            </li>
+<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
+                                Basic Reporting
+                            </li>
+</ul>
+<a href="{{ $ctaUrl }}" class="w-full h-8 border border-outline-variant font-label-md hover:bg-surface-container transition-colors flex items-center justify-center">Select Plan</a>
+</div>
+<!-- Professional -->
+<div class="bg-white border-2 border-primary p-lg flex flex-col gap-md relative">
+<div class="absolute top-0 right-lg -translate-y-1/2 bg-primary text-on-primary px-sm py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">Most Popular</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Professional</h3>
+<div class="mt-xs flex items-baseline gap-1">
+<span class="text-display font-display text-primary">$129</span>
+<span class="text-body-sm text-on-surface-variant">/month</span>
+</div>
+</div>
+<ul class="flex flex-col gap-sm flex-grow">
+<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
+                                Up to 5 Branches
+                            </li>
+<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
+                                Unlimited SKUs
+                            </li>
+<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
+                                Advanced AI Forecasting
+                            </li>
+<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
+                                Supplier Integration APIs
+                            </li>
+</ul>
+<a href="{{ $ctaUrl }}" class="w-full h-8 bg-primary text-on-primary font-label-md hover:brightness-110 transition-all shadow-md flex items-center justify-center">Select Plan</a>
+</div>
+<!-- Enterprise -->
+<div class="bg-white border border-outline-variant p-lg flex flex-col gap-md">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Enterprise</h3>
+<div class="mt-xs flex items-baseline gap-1">
+<span class="text-headline-lg font-display text-primary">Custom</span>
+</div>
+</div>
+<ul class="flex flex-col gap-sm flex-grow">
+<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
+                                Unlimited Branches
+                            </li>
+<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
+                                Dedicated Account Manager
+                            </li>
+<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
+                                On-Premise Cloud Hybrid
+                            </li>
+<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
+                                SSO &amp; Audit Logs
+                            </li>
+</ul>
+<a href="#contact" class="w-full h-8 border border-outline-variant font-label-md hover:bg-surface-container transition-colors flex items-center justify-center">Contact Sales</a>
+</div>
+</div>
+</div>
+</section>
+<!-- Final CTA -->
+<section class="py-24 relative overflow-hidden bg-primary">
+<div class="max-w-container-max mx-auto px-lg relative z-10 text-center flex flex-col items-center gap-md">
+<h2 class="font-display text-display text-on-primary max-w-2xl">Ready to digitize your pharmacy operations?</h2>
+<p class="text-on-primary opacity-80 text-body-lg max-w-xl">Join thousands of leading pharmacies using {{ config('app.name', 'ArogyaKart') }} to increase margins and reduce medication errors.</p>
+<div class="flex items-center gap-md mt-md">
+<a href="{{ $ctaUrl }}" class="bg-white text-primary h-10 px-lg flex items-center justify-center font-label-md rounded shadow-xl hover:scale-105 transition-transform">{{ auth()->check() ? 'Open Dashboard' : 'Get Started Now' }}</a>
+<a href="#contact" class="text-on-primary h-10 px-lg flex items-center justify-center font-label-md border border-on-primary/30 rounded hover:bg-white/10 transition-colors">Talk to an Expert</a>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer id="contact" class="bg-surface-container-low border-t border-outline-variant scroll-mt-16">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-lg px-lg py-xl max-w-container-max mx-auto">
+<div class="flex flex-col gap-md">
+<span class="font-headline-md text-headline-md font-bold text-primary">{{ config('app.name', 'ArogyaKart') }}</span>
+<p class="text-body-sm text-on-surface-variant leading-relaxed">Precision-engineered software for the modern healthcare supply chain.</p>
+</div>
+<div class="flex flex-col gap-sm">
+<h4 class="font-label-md text-on-surface uppercase tracking-wider text-[10px]">Product</h4>
+<a class="text-body-sm text-on-surface-variant hover:text-primary" href="#features">Features</a>
+<a class="text-body-sm text-on-surface-variant hover:text-primary" href="#solutions">Solutions</a>
+<a class="text-body-sm text-on-surface-variant hover:text-primary" href="#pricing">Pricing</a>
+</div>
+<div class="flex flex-col gap-sm">
+<h4 class="font-label-md text-on-surface uppercase tracking-wider text-[10px]">Company</h4>
+<a class="text-body-sm text-on-surface-variant hover:text-primary" href="#">Careers</a>
+<a class="text-body-sm text-on-surface-variant hover:text-primary" href="#">Contact Support</a>
+<a class="text-body-sm text-on-surface-variant hover:text-primary" href="#">Privacy Policy</a>
+</div>
+<div class="flex flex-col gap-sm">
+<h4 class="font-label-md text-on-surface uppercase tracking-wider text-[10px]">Get Started</h4>
+<p class="text-body-sm text-on-surface-variant mb-xs">Create your pharmacy account in minutes.</p>
+<a href="{{ route('register') }}" class="bg-primary text-on-primary h-8 px-md rounded font-label-md text-label-md shadow-sm hover:bg-primary-container transition-colors flex items-center justify-center gap-1 w-max">
+<span class="material-symbols-outlined !text-[16px]">rocket_launch</span> Sign Up Free
+</a>
+</div>
+</div>
+<div class="max-w-container-max mx-auto px-lg py-md border-t border-outline-variant flex justify-between items-center">
+<span class="text-body-sm text-on-surface-variant">© {{ date('Y') }} {{ config('app.name', 'ArogyaKart') }}. All rights reserved.</span>
+<div class="flex gap-md">
+<a href="{{ route('login') }}" class="text-body-sm text-on-surface-variant hover:text-primary transition-colors">Login</a>
+<a href="{{ route('register') }}" class="text-body-sm text-on-surface-variant hover:text-primary transition-colors">Register</a>
+</div>
+</div>
+</footer>
+<script>
+        // Micro-interactions for feature card hover lift
+        document.querySelectorAll('.group').forEach(card => {
+            card.addEventListener('mouseenter', () => { card.style.transform = 'translateY(-4px)'; });
+            card.addEventListener('mouseleave', () => { card.style.transform = 'translateY(0)'; });
+        });
+
+        // Mobile navigation menu
+        (function () {
+            const toggle = document.getElementById('nav-toggle');
+            const menu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('nav-toggle-icon');
+            if (!toggle || !menu) return;
+
+            const setOpen = (open) => {
+                menu.classList.toggle('hidden', !open);
+                toggle.setAttribute('aria-expanded', String(open));
+                icon.textContent = open ? 'close' : 'menu';
+            };
+
+            toggle.addEventListener('click', () => setOpen(menu.classList.contains('hidden')));
+            // Close after tapping any link inside the panel.
+            menu.querySelectorAll('a').forEach(link => link.addEventListener('click', () => setOpen(false)));
+        })();
+    </script>
+</body></html>

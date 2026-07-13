@@ -12,36 +12,36 @@
 @endsection
 
 @section('dashboard-content')
-    <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 class="text-lg font-semibold text-slate-900 mb-4">Quick Actions</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <section class="card card-pad">
+        <h2 class="section-title mb-4">Quick Actions</h2>
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
 
             @can('create', \App\Models\Sale::class)
-                <a href="{{ route('admin.pos.index') }}" class="flex items-center gap-3 rounded-2xl border border-slate-200 p-4 hover:border-emerald-400 hover:bg-emerald-50 transition">
-                    <span class="material-symbols-outlined text-emerald-600">point_of_sale</span>
+                <a href="{{ route('admin.pos.index') }}" class="flex items-center gap-3 rounded-xl border border-outline-variant/40 p-4 transition hover:border-primary hover:bg-primary/5">
+                    <span class="icon-tile bg-primary/10 text-primary"><span class="material-symbols-outlined text-[20px]">point_of_sale</span></span>
                     <div>
-                        <p class="font-semibold text-slate-900">New Sale (POS)</p>
-                        <p class="text-xs text-slate-500">Bill a customer</p>
+                        <p class="font-semibold text-on-surface">New Sale (POS)</p>
+                        <p class="text-xs text-on-surface-variant">Bill a customer</p>
                     </div>
                 </a>
             @endcan
 
             @can('viewAny', \App\Models\Sale::class)
-                <a href="{{ route('admin.sales.index') }}" class="flex items-center gap-3 rounded-2xl border border-slate-200 p-4 hover:border-emerald-400 hover:bg-emerald-50 transition">
-                    <span class="material-symbols-outlined text-emerald-600">receipt_long</span>
+                <a href="{{ route('admin.sales.index') }}" class="flex items-center gap-3 rounded-xl border border-outline-variant/40 p-4 transition hover:border-primary hover:bg-primary/5">
+                    <span class="icon-tile bg-primary/10 text-primary"><span class="material-symbols-outlined text-[20px]">receipt_long</span></span>
                     <div>
-                        <p class="font-semibold text-slate-900">Sales History</p>
-                        <p class="text-xs text-slate-500">View past bills</p>
+                        <p class="font-semibold text-on-surface">Sales History</p>
+                        <p class="text-xs text-on-surface-variant">View past bills</p>
                     </div>
                 </a>
             @endcan
 
             @can('viewAny', \App\Models\Product::class)
-                <a href="{{ route('admin.products.index') }}" class="flex items-center gap-3 rounded-2xl border border-slate-200 p-4 hover:border-emerald-400 hover:bg-emerald-50 transition">
-                    <span class="material-symbols-outlined text-emerald-600">inventory_2</span>
+                <a href="{{ route('admin.products.index') }}" class="flex items-center gap-3 rounded-xl border border-outline-variant/40 p-4 transition hover:border-primary hover:bg-primary/5">
+                    <span class="icon-tile bg-primary/10 text-primary"><span class="material-symbols-outlined text-[20px]">inventory_2</span></span>
                     <div>
-                        <p class="font-semibold text-slate-900">Inventory</p>
-                        <p class="text-xs text-slate-500">Look up medicines &amp; stock</p>
+                        <p class="font-semibold text-on-surface">Inventory</p>
+                        <p class="text-xs text-on-surface-variant">Look up medicines &amp; stock</p>
                     </div>
                 </a>
             @endcan
@@ -49,7 +49,7 @@
         </div>
 
         @unless(auth()->user()->can('create', \App\Models\Sale::class) || auth()->user()->can('viewAny', \App\Models\Product::class))
-            <p class="mt-4 text-sm text-slate-500">Your account doesn't have any operational tools assigned yet. Ask your pharmacy owner to update your position.</p>
+            <p class="mt-4 text-sm text-on-surface-variant">Your account doesn't have any operational tools assigned yet. Ask your pharmacy owner to update your position.</p>
         @endunless
     </section>
 @endsection

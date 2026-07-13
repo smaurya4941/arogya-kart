@@ -75,6 +75,39 @@ class RazorpayService
     }
 
     /**
+     * Refund a captured payment (full or partial) through the Razorpay API.
+     *
+     * @param  string  $paymentId  The Razorpay payment id (e.g. `pay_XXXX`).
+     * @param  float|null  $amount  Amount in rupees; omit/null for a full refund.
+     * @param  array<string,mixed>  $notes  Metadata stored on the refund.
+     * @return array<string,mixed> The refund payload (contains `id`, `status`, ...).
+     */
+    public function refundPayment(string $paymentId, ?float $amount = null, array $notes = []): array
+    {
+        $this->assertConfigured();
+
+        $payload = ['speed' => 'normal'];
+
+        if ($amount !== null) {
+            $payload['amount'] = (int) round($amount * 100); // paise
+        }
+
+        if ($notes !== []) {
+            $payload['notes'] = $notes;
+        }
+
+        $response = Http::withBasicAuth($this->key, $this->secret)
+            ->asJson()
+            ->post(self::API_BASE . "/payments/{$paymentId}/refund", $payload);
+
+        if ($response->failed()) {
+            throw new RuntimeException('Razorpay refund failed: ' . $response->body());
+        }
+
+        return $response->json();
+    }
+
+    /**
      * Verify the signature Checkout.js returns to the browser after a successful
      * payment. The signature is HMAC-SHA256(order_id|payment_id, key_secret).
      */

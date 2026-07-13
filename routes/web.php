@@ -179,20 +179,95 @@ Route::middleware(['auth', 'role:super_admin'])
     ->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\SuperAdmin\DashboardController::class, 'index'])->name('dashboard');
 
-        // Tenant management
-        Route::get('/pharmacies', [\App\Http\Controllers\SuperAdmin\PharmacyController::class, 'index'])->name('pharmacies.index');
-        Route::get('/pharmacies/{pharmacy}', [\App\Http\Controllers\SuperAdmin\PharmacyController::class, 'show'])->name('pharmacies.show');
-        Route::patch('/pharmacies/{pharmacy}/toggle-status', [\App\Http\Controllers\SuperAdmin\PharmacyController::class, 'toggleStatus'])->name('pharmacies.toggle-status');
-        Route::post('/pharmacies/{pharmacy}/impersonate', [\App\Http\Controllers\SuperAdmin\ImpersonationController::class, 'start'])->name('pharmacies.impersonate');
+        // Each section below is gated by a granular Super-Admin capability
+        // (admin.can:<key>). A full super admin holds every capability; a
+        // restricted "support" super admin only the ones granted to their account.
 
-        // Plan catalogue
-        Route::resource('plans', \App\Http\Controllers\SuperAdmin\PlanController::class)->except(['show']);
+        // Tenant management — full lifecycle (onboard / edit / suspend / archive / restore)
+        Route::middleware('admin.can:pharmacies')->group(function () {
+            Route::get('/pharmacies', [\App\Http\Controllers\SuperAdmin\PharmacyController::class, 'index'])->name('pharmacies.index');
+            Route::get('/pharmacies/create', [\App\Http\Controllers\SuperAdmin\PharmacyController::class, 'create'])->name('pharmacies.create');
+            Route::post('/pharmacies', [\App\Http\Controllers\SuperAdmin\PharmacyController::class, 'store'])->name('pharmacies.store');
+            Route::get('/pharmacies/{pharmacy}', [\App\Http\Controllers\SuperAdmin\PharmacyController::class, 'show'])->name('pharmacies.show')->withTrashed();
+            Route::get('/pharmacies/{pharmacy}/edit', [\App\Http\Controllers\SuperAdmin\PharmacyController::class, 'edit'])->name('pharmacies.edit');
+            Route::put('/pharmacies/{pharmacy}', [\App\Http\Controllers\SuperAdmin\PharmacyController::class, 'update'])->name('pharmacies.update');
+            Route::patch('/pharmacies/{pharmacy}/toggle-status', [\App\Http\Controllers\SuperAdmin\PharmacyController::class, 'toggleStatus'])->name('pharmacies.toggle-status');
+            Route::delete('/pharmacies/{pharmacy}', [\App\Http\Controllers\SuperAdmin\PharmacyController::class, 'destroy'])->name('pharmacies.destroy');
+            Route::patch('/pharmacies/{pharmacy}/restore', [\App\Http\Controllers\SuperAdmin\PharmacyController::class, 'restore'])->name('pharmacies.restore');
+        });
 
-        // Subscriptions overview
-        Route::get('/subscriptions', [\App\Http\Controllers\SuperAdmin\SubscriptionController::class, 'index'])->name('subscriptions.index');
+        // Impersonation — a distinct capability so support can be granted it alone.
+        Route::middleware('admin.can:impersonate')->group(function () {
+            Route::post('/pharmacies/{pharmacy}/impersonate', [\App\Http\Controllers\SuperAdmin\ImpersonationController::class, 'start'])->name('pharmacies.impersonate');
+        });
+
+        // Global user management — every account across all tenants
+        Route::middleware('admin.can:users')->group(function () {
+            Route::patch('/users/{user}/toggle-status', [\App\Http\Controllers\SuperAdmin\UserController::class, 'toggleStatus'])->name('users.toggle-status');
+            Route::resource('users', \App\Http\Controllers\SuperAdmin\UserController::class)->except(['show']);
+        });
+
+        // Billing — plans, subscriptions, invoices and coupons.
+        Route::middleware('admin.can:billing')->group(function () {
+            // Plan catalogue
+            Route::patch('/plans/{plan}/toggle-status', [\App\Http\Controllers\SuperAdmin\PlanController::class, 'toggleStatus'])->name('plans.toggle-status');
+            Route::resource('plans', \App\Http\Controllers\SuperAdmin\PlanController::class)->except(['show']);
+
+            // Subscriptions — full lifecycle management
+            Route::post('/subscriptions/{subscription}/extend-trial', [\App\Http\Controllers\SuperAdmin\SubscriptionController::class, 'extendTrial'])->name('subscriptions.extend-trial');
+            Route::post('/subscriptions/{subscription}/cancel', [\App\Http\Controllers\SuperAdmin\SubscriptionController::class, 'cancel'])->name('subscriptions.cancel');
+            Route::resource('subscriptions', \App\Http\Controllers\SuperAdmin\SubscriptionController::class)->except(['show']);
+
+            // Invoices / billing desk
+            Route::get('/invoices/export', [\App\Http\Controllers\SuperAdmin\InvoiceController::class, 'export'])->name('invoices.export');
+            Route::get('/invoices/{invoice}/pdf', [\App\Http\Controllers\SuperAdmin\InvoiceController::class, 'pdf'])->name('invoices.pdf');
+            Route::patch('/invoices/{invoice}/mark-paid', [\App\Http\Controllers\SuperAdmin\InvoiceController::class, 'markPaid'])->name('invoices.mark-paid');
+            Route::patch('/invoices/{invoice}/void', [\App\Http\Controllers\SuperAdmin\InvoiceController::class, 'void'])->name('invoices.void');
+            Route::patch('/invoices/{invoice}/refund', [\App\Http\Controllers\SuperAdmin\InvoiceController::class, 'refund'])->name('invoices.refund');
+            Route::get('/invoices', [\App\Http\Controllers\SuperAdmin\InvoiceController::class, 'index'])->name('invoices.index');
+            Route::post('/invoices', [\App\Http\Controllers\SuperAdmin\InvoiceController::class, 'store'])->name('invoices.store');
+        });
+
+        // Cross-tenant operational visibility (read-only browsers + aggregate overview)
+        Route::middleware('admin.can:operations')->group(function () {
+            Route::get('/operations', [\App\Http\Controllers\SuperAdmin\OperationsController::class, 'index'])->name('operations.index');
+            Route::get('/operations/products', [\App\Http\Controllers\SuperAdmin\OperationsController::class, 'products'])->name('operations.products');
+            Route::get('/operations/sales', [\App\Http\Controllers\SuperAdmin\OperationsController::class, 'sales'])->name('operations.sales');
+            Route::get('/operations/purchases', [\App\Http\Controllers\SuperAdmin\OperationsController::class, 'purchases'])->name('operations.purchases');
+            Route::get('/operations/customers', [\App\Http\Controllers\SuperAdmin\OperationsController::class, 'customers'])->name('operations.customers');
+            Route::get('/operations/expenses', [\App\Http\Controllers\SuperAdmin\OperationsController::class, 'expenses'])->name('operations.expenses');
+        });
 
         // Activity / audit trail (impersonation & platform events)
-        Route::get('/audit', [\App\Http\Controllers\SuperAdmin\AuditController::class, 'index'])->name('audit.index');
+        Route::middleware('admin.can:audit')->group(function () {
+            Route::get('/audit/export', [\App\Http\Controllers\SuperAdmin\AuditController::class, 'export'])->name('audit.export');
+            Route::get('/audit', [\App\Http\Controllers\SuperAdmin\AuditController::class, 'index'])->name('audit.index');
+        });
+
+        // Announcements / broadcast messages
+        Route::middleware('admin.can:announcements')->group(function () {
+            Route::patch('/announcements/{announcement}/toggle', [\App\Http\Controllers\SuperAdmin\AnnouncementController::class, 'toggle'])->name('announcements.toggle');
+            Route::resource('announcements', \App\Http\Controllers\SuperAdmin\AnnouncementController::class)->except(['show']);
+        });
+
+        // Coupons & discounts — part of billing.
+        Route::middleware('admin.can:billing')->group(function () {
+            Route::patch('/coupons/{coupon}/toggle', [\App\Http\Controllers\SuperAdmin\CouponController::class, 'toggle'])->name('coupons.toggle');
+            Route::resource('coupons', \App\Http\Controllers\SuperAdmin\CouponController::class)->except(['show']);
+        });
+
+        // Platform settings
+        Route::middleware('admin.can:settings')->group(function () {
+            Route::get('/settings', [\App\Http\Controllers\SuperAdmin\SettingsController::class, 'index'])->name('settings.index');
+            Route::put('/settings', [\App\Http\Controllers\SuperAdmin\SettingsController::class, 'update'])->name('settings.update');
+        });
+
+        // System health & operations
+        Route::middleware('admin.can:system')->group(function () {
+            Route::get('/system', [\App\Http\Controllers\SuperAdmin\SystemController::class, 'index'])->name('system.index');
+            Route::post('/system/failed-jobs/retry', [\App\Http\Controllers\SuperAdmin\SystemController::class, 'retryFailed'])->name('system.failed.retry');
+            Route::post('/system/failed-jobs/flush', [\App\Http\Controllers\SuperAdmin\SystemController::class, 'flushFailed'])->name('system.failed.flush');
+        });
     });
 
 

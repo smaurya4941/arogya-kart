@@ -1,24 +1,23 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-bold text-3xl text-gray-900 dark:text-white leading-tight">
-            {{ __('Complete Payment') }}
-        </h2>
-    </x-slot>
+    <div class="page mx-auto max-w-lg">
+        <div class="page-header">
+            <h1 class="page-title">Complete Payment</h1>
+        </div>
+        <div class="card card-pad text-center">
+            <h3 class="text-xl font-bold text-on-surface">{{ $plan->name }} Plan</h3>
+            <p class="text-on-surface-variant">{{ ucfirst($cycle) }} billing</p>
+            <p class="my-6 text-4xl font-extrabold text-on-surface">₹{{ number_format($amount, 2) }}</p>
+            @if(!empty($couponCode))
+                <p class="mb-2 inline-flex items-center gap-1 rounded-full bg-tertiary-container/20 px-3 py-1 text-sm font-medium text-tertiary">
+                    <span class="material-symbols-outlined text-[16px]">sell</span> Coupon {{ $couponCode }} applied
+                </p>
+            @endif
+            <p class="mb-8 text-sm text-on-surface-variant">+ applicable GST. You'll be redirected to Razorpay's secure checkout.</p>
 
-    <div class="py-12 bg-gray-50 dark:bg-gray-900 min-h-screen">
-        <div class="max-w-lg mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-8 border border-gray-100 dark:border-gray-700 text-center">
-                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">{{ $plan->name }} Plan</h3>
-                <p class="text-gray-500 dark:text-gray-400">{{ ucfirst($cycle) }} billing</p>
-                <p class="text-4xl font-extrabold text-gray-900 dark:text-white my-6">₹{{ number_format($amount, 2) }}</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mb-8">+ applicable GST. You'll be redirected to Razorpay's secure checkout.</p>
+            <button id="pay-btn" class="btn btn-primary w-full">Pay Securely</button>
 
-                <button id="pay-btn" class="w-full py-3 px-4 rounded-xl font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors">
-                    Pay Securely
-                </button>
-
-                <a href="{{ route('admin.subscription.index') }}" class="block mt-4 text-sm text-gray-500 hover:underline">Cancel</a>
-            </div>
+            <a href="{{ route('admin.subscription.index') }}" class="mt-4 block text-sm text-on-surface-variant hover:underline">Cancel</a>
+        </div>
 
             {{-- Signature fields are POSTed here after Razorpay confirms the payment. --}}
             <form id="callback-form" action="{{ route('admin.subscription.callback') }}" method="POST" class="hidden">
@@ -29,7 +28,6 @@
                 <input type="hidden" name="razorpay_payment_id" id="rzp_payment_id">
                 <input type="hidden" name="razorpay_signature" id="rzp_signature">
             </form>
-        </div>
     </div>
 
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -46,7 +44,7 @@
                 email: @json($pharmacy->email),
                 contact: @json($pharmacy->phone),
             },
-            theme: { color: '#2563eb' },
+            theme: { color: '#00685f' },
             handler: function (response) {
                 document.getElementById('rzp_order_id').value = response.razorpay_order_id;
                 document.getElementById('rzp_payment_id').value = response.razorpay_payment_id;

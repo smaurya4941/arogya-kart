@@ -1,5 +1,6 @@
 @php
     $user = auth()->user();
+    $brand = config('app.name', 'ArogyaKart');
     $menuGroups = [];
 
     if ($user?->isAdmin()) {
@@ -82,37 +83,35 @@
 <!-- SideNavBar (Desktop) -->
 <aside
     x-cloak
-    class="fixed left-0 top-0 h-full w-[280px] bg-white/70 dark:bg-on-background/70 backdrop-blur-xl border-r border-outline-variant/30 dark:border-outline/20 shadow-sm z-50 flex flex-col py-6 transition-transform duration-300 lg:translate-x-0"
+    class="fixed left-0 top-0 z-50 flex h-full w-[248px] flex-col border-r border-outline-variant/40 bg-white/80 py-4 shadow-sm backdrop-blur-xl transition-transform duration-300 dark:border-outline/20 dark:bg-on-background/70 lg:translate-x-0"
     :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
 >
-    <div class="px-6 mb-8 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-on-primary shadow-lg shadow-primary/20">
-                <span class="material-symbols-outlined text-title-lg" style="font-variation-settings: 'FILL' 1;">medical_services</span>
+    <div class="mb-5 flex items-center justify-between px-5">
+        <a href="{{ url('/') }}" class="flex items-center gap-2.5">
+            <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-on-primary shadow-sm">
+                <span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">medical_services</span>
             </div>
-            <div>
-                <a href="{{ url('/') }}">
-                    <h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed leading-tight">PharmaFlow</h1>
-                    <p class="text-label-md font-label-md text-on-surface-variant/70 uppercase tracking-widest">Enterprise Suite</p>
-                </a>
+            <div class="leading-tight">
+                <h1 class="text-base font-bold tracking-tight text-on-surface dark:text-primary-fixed">{{ $brand }}</h1>
+                <p class="text-[10px] font-medium uppercase tracking-widest text-on-surface-variant/70">Pharmacy OS</p>
             </div>
-        </div>
-        
+        </a>
+
         <button
             type="button"
-            class="inline-flex h-10 w-10 items-center justify-center rounded-xl text-on-surface-variant hover:bg-surface-variant/20 lg:hidden"
+            class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-on-surface-variant hover:bg-surface-container-low lg:hidden"
             @click="sidebarOpen = false"
             aria-label="Close sidebar"
         >
-            <span class="material-symbols-outlined">close</span>
+            <span class="material-symbols-outlined text-[20px]">close</span>
         </button>
     </div>
 
-    <nav class="flex-1 px-4 space-y-4 overflow-y-auto custom-scrollbar">
+    <nav class="custom-scrollbar flex-1 space-y-4 overflow-y-auto px-3">
         @foreach ($menuGroups as $group)
-            <div class="space-y-1">
+            <div class="space-y-0.5">
                 @if(count($menuGroups) > 1)
-                    <p class="px-4 text-[10px] font-bold uppercase tracking-widest text-outline-variant mb-2">
+                    <p class="px-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-outline-variant">
                         {{ $group['label'] }}
                     </p>
                 @endif
@@ -127,18 +126,18 @@
                         <a
                             href="{{ route($item['route']) }}"
                             @click="sidebarOpen = false"
-                            class="flex items-center gap-3 px-4 py-3 rounded-xl {{ $isActive ? 'text-primary dark:text-primary-fixed-dim font-bold border-r-4 border-primary dark:border-primary-fixed-dim bg-primary/5' : 'text-on-surface-variant dark:text-outline-variant hover:bg-primary/10' }} active:scale-95 transition-all duration-150"
+                            class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors {{ $isActive ? 'bg-primary/10 font-semibold text-primary dark:text-primary-fixed-dim' : 'font-medium text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface dark:text-outline-variant' }}"
                         >
-                            <span class="material-symbols-outlined {{ $isActive ? 'active-icon' : '' }}">{{ $item['icon'] ?? 'circle' }}</span>
-                            <span class="font-body-md text-body-md">{{ $item['label'] }}</span>
+                            <span class="material-symbols-outlined text-[20px] {{ $isActive ? 'active-icon' : '' }}">{{ $item['icon'] ?? 'circle' }}</span>
+                            <span>{{ $item['label'] }}</span>
                         </a>
                     @else
-                        <div class="flex items-center justify-between px-4 py-3 rounded-xl text-outline-variant/60 cursor-not-allowed">
+                        <div class="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-outline-variant/60">
                             <div class="flex items-center gap-3">
-                                <span class="material-symbols-outlined">{{ $item['icon'] ?? 'circle' }}</span>
-                                <span class="font-body-md text-body-md">{{ $item['label'] }}</span>
+                                <span class="material-symbols-outlined text-[20px]">{{ $item['icon'] ?? 'circle' }}</span>
+                                <span class="font-medium">{{ $item['label'] }}</span>
                             </div>
-                            <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-surface-container text-on-surface-variant">Soon</span>
+                            <span class="badge badge-neutral">Soon</span>
                         </div>
                     @endif
                 @endforeach
@@ -146,23 +145,17 @@
         @endforeach
     </nav>
 
-    <div class="mt-auto px-6 pt-6 border-t border-outline-variant/20">
-        <button class="w-full bg-primary text-on-primary py-3 px-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:opacity-90 active:scale-95 transition-all">
-            <span class="material-symbols-outlined">add_circle</span>
-            New Prescription
-        </button>
-        <div class="mt-6 space-y-2">
-            <a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:text-primary transition-colors" href="{{ route('profile.edit') }}">
-                <span class="material-symbols-outlined">settings</span>
-                <span class="text-body-md">Settings</span>
-            </a>
-            <form method="POST" action="{{ route('logout') }}" class="w-full">
-                @csrf
-                <button type="submit" class="w-full flex items-center gap-3 px-4 py-2 text-error hover:opacity-80 transition-opacity">
-                    <span class="material-symbols-outlined">logout</span>
-                    <span class="text-body-md">Sign Out</span>
-                </button>
-            </form>
-        </div>
+    <div class="mt-auto space-y-1 border-t border-outline-variant/30 px-3 pt-3">
+        <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-on-surface" href="{{ route('profile.edit') }}">
+            <span class="material-symbols-outlined text-[20px]">settings</span>
+            <span>Settings</span>
+        </a>
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-error transition-colors hover:bg-error/10">
+                <span class="material-symbols-outlined text-[20px]">logout</span>
+                <span>Sign Out</span>
+            </button>
+        </form>
     </div>
 </aside>

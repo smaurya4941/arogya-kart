@@ -94,6 +94,34 @@ class SaleService
                 $customer = Customer::find($sale->customer_id);
                 $customer->increment('outstanding_balance', $due);
             }
+            
+            // Handle DPDP Consent
+            if ($sale->customer_id && isset($data['consent_given']) && $data['consent_given']) {
+                $customer = Customer::find($sale->customer_id);
+                if ($customer && !$customer->consent_given) {
+                    $customer->update([
+                        'consent_given' => true,
+                        'consent_date' => now(),
+                    ]);
+                }
+            }
+            
+            // Handle Split Payments
+            if ($data['payment_method'] === 'split' && !empty($data['payments'])) {
+                foreach ($data['payments'] as $payment) {
+                    \App\Models\SalePayment::create([
+                        'sale_id' => $sale->id,
+                        'payment_method' => $payment['method'],
+                        'amount' => round((float) $payment['amount'], 2),
+                    ]);
+                }
+            } elseif ($paid > 0 && $data['payment_method'] !== 'credit') {
+                \App\Models\SalePayment::create([
+                    'sale_id' => $sale->id,
+                    'payment_method' => $data['payment_method'],
+                    'amount' => $paid,
+                ]);
+            }
 
             return $sale;
         });

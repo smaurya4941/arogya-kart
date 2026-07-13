@@ -12,9 +12,9 @@
 @endsection
 
 @section('dashboard-content')
-    <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 class="text-lg font-semibold text-slate-900">Client Experience Foundation</h2>
-        <p class="mt-2 text-sm leading-6 text-slate-600">
+    <section class="card card-pad">
+        <h2 class="section-title">Client Experience Foundation</h2>
+        <p class="mt-2 text-sm leading-6 text-on-surface-variant">
             The client area now shares the same production-ready shell as admin and staff. That gives you a clean path to add online
             ordering, prescription uploads, and delivery visibility without rebuilding the UI layer later.
         </p>

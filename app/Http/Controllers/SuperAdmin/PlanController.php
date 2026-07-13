@@ -45,14 +45,29 @@ class PlanController extends Controller
         return redirect()->route('superadmin.plans.index')->with('success', 'Plan updated.');
     }
 
+    /**
+     * Archive/unarchive a plan. Deactivating hides it from the tenant billing page
+     * (Plan::scopeActive) without disturbing anyone already subscribed to it — the
+     * safe alternative to deleting a plan that's in use.
+     */
+    public function toggleStatus(Plan $plan)
+    {
+        $plan->update(['is_active' => ! $plan->is_active]);
+
+        $verb = $plan->is_active ? 'activated' : 'archived';
+
+        return back()->with('success', "Plan \"{$plan->name}\" {$verb}.");
+    }
+
     public function destroy(Plan $plan)
     {
-        // Guard: never orphan live subscriptions by hard-deleting a plan in use.
+        // Guard: never orphan live subscriptions by deleting a plan in use — archive
+        // it instead so existing subscribers keep their pricing.
         if ($plan->subscriptions()->exists()) {
-            return back()->with('error', 'Cannot delete a plan with existing subscriptions. Deactivate it instead.');
+            return back()->with('error', 'Cannot delete a plan with existing subscriptions. Archive it instead.');
         }
 
-        $plan->delete();
+        $plan->delete(); // soft delete
 
         return back()->with('success', 'Plan deleted.');
     }

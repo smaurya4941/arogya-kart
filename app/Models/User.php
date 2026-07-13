@@ -28,6 +28,7 @@ class User extends Authenticatable
         'phone',
         'status',
         'pharmacy_id',
+        'admin_capabilities',
     ];
 
     /**
@@ -51,6 +52,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
+            'admin_capabilities' => 'array',
         ];
     }
 
@@ -62,6 +64,40 @@ class User extends Authenticatable
     public function isSuperAdmin(): bool
     {
         return $this->hasUserRole(UserRole::SUPER_ADMIN);
+    }
+
+    /**
+     * A "full" super admin holds every platform capability. This is the default
+     * (admin_capabilities is null) so pre-existing platform owners are unaffected;
+     * a non-empty capability list marks a restricted super admin (e.g. support).
+     */
+    public function isFullSuperAdmin(): bool
+    {
+        return $this->isSuperAdmin() && empty($this->admin_capabilities);
+    }
+
+    /**
+     * The set of platform capabilities this account holds. A full super admin
+     * resolves to every capability; a restricted one to its stored list; anyone
+     * who is not a super admin holds none.
+     *
+     * @return array<int,string>
+     */
+    public function adminCapabilities(): array
+    {
+        if (! $this->isSuperAdmin()) {
+            return [];
+        }
+
+        return empty($this->admin_capabilities)
+            ? \App\Support\AdminCapability::all()
+            : array_values($this->admin_capabilities);
+    }
+
+    /** True when this super admin may access the given platform capability. */
+    public function hasAdminCapability(string $capability): bool
+    {
+        return in_array($capability, $this->adminCapabilities(), true);
     }
 
     /**

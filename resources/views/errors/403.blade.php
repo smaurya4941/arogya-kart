@@ -6,7 +6,7 @@
     <title>403 — Forbidden | {{ config('app.name', 'ArogyaKart') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-slate-50 text-slate-900 antialiased min-h-screen flex items-center justify-center">
+<body class="bg-background text-on-surface antialiased min-h-screen flex items-center justify-center">
     <div class="text-center px-6 py-20 max-w-lg mx-auto">
         {{-- Icon --}}
         <div class="flex justify-center mb-6">
@@ -22,8 +22,8 @@
         <p class="text-8xl font-black text-amber-500 tracking-tight leading-none mb-4">403</p>
 
         {{-- Heading --}}
-        <h1 class="text-2xl font-bold text-slate-800 mb-3">Access Denied</h1>
-        <p class="text-slate-500 mb-8 leading-relaxed">
+        <h1 class="text-2xl font-bold text-on-surface mb-3">Access Denied</h1>
+        <p class="text-on-surface-variant mb-8 leading-relaxed">
             You don't have permission to access this page.
             If you believe this is a mistake, please contact your system administrator.
         </p>
@@ -46,7 +46,7 @@
             @endauth
         </div>
 
-        <p class="mt-12 text-sm text-slate-400">
+        <p class="mt-12 text-sm text-outline">
             {{ config('app.name', 'ArogyaKart') }} &mdash; Pharmacy Management
         </p>
     </div>

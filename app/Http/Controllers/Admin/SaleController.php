@@ -149,6 +149,8 @@ class SaleController extends Controller
                 'price' => $nearest ? (float) $nearest->mrp : 0,
                 'gst' => $this->sales->gstRateFor($product->id),
                 'nearest_expiry' => $nearest?->expiry_date?->toDateString(),
+                'generic_name' => $product->generic_name,
+                'storage_conditions' => $product->storage_conditions,
             ];
         })->filter(fn ($row) => $row['stock'] > 0)->values();
 

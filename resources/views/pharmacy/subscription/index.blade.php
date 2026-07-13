@@ -1,73 +1,79 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-bold text-3xl text-gray-900 dark:text-white leading-tight">
-            {{ __('Subscription Management') }}
-        </h2>
-    </x-slot>
+    <div class="page">
+        <div class="page-header">
+            <h1 class="page-title">Subscription Management</h1>
+        </div>
 
-    <div class="py-12 bg-gray-50 dark:bg-gray-900 min-h-screen">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
-            <!-- Current Plan -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-8 border border-gray-100 dark:border-gray-700">
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Current Subscription</h3>
-                @if($currentSubscription && $currentSubscription->isValid())
-                    @php $onTrial = $currentSubscription->onTrial(); @endphp
-                    <div class="flex justify-between items-center {{ $onTrial ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800' : 'bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800' }} p-6 rounded-xl border">
-                        <div>
-                            <p class="text-sm {{ $onTrial ? 'text-amber-600 dark:text-amber-400' : 'text-green-600 dark:text-green-400' }} font-bold uppercase tracking-wide">
-                                {{ $onTrial ? 'Free Trial' : 'Active Plan' }}
-                            </p>
-                            <h4 class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ $currentSubscription->plan->name }} ({{ ucfirst($currentSubscription->billing_cycle) }})</h4>
-                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                                {{ $onTrial ? 'Trial ends' : 'Valid until' }}:
-                                {{ optional($currentSubscription->currentPeriodEnd())->format('d M, Y') ?? 'N/A' }}
-                                <span class="ml-1 font-medium">({{ $currentSubscription->daysRemaining() }} days left)</span>
-                            </p>
-                        </div>
-                        <div>
-                            <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium {{ $onTrial ? 'bg-amber-100 text-amber-800 dark:bg-amber-800 dark:text-amber-100' : 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' }}">
-                                {{ $onTrial ? 'Trial' : 'Active' }}
-                            </span>
-                        </div>
+        <!-- Current Plan -->
+        <div class="card card-pad">
+            <h3 class="section-title mb-4">Current Subscription</h3>
+            @if($currentSubscription && $currentSubscription->isValid())
+                @php $onTrial = $currentSubscription->onTrial(); @endphp
+                <div class="flex flex-col gap-3 rounded-xl border p-5 sm:flex-row sm:items-center sm:justify-between {{ $onTrial ? 'border-amber-200 bg-amber-50' : 'border-tertiary/20 bg-tertiary-container/10' }}">
+                    <div>
+                        <p class="text-[11px] font-bold uppercase tracking-wider {{ $onTrial ? 'text-amber-600' : 'text-tertiary' }}">
+                            {{ $onTrial ? 'Free Trial' : 'Active Plan' }}
+                        </p>
+                        <h4 class="mt-1 text-xl font-bold text-on-surface">{{ $currentSubscription->plan->name }} ({{ ucfirst($currentSubscription->billing_cycle) }})</h4>
+                        <p class="mt-2 text-sm text-on-surface-variant">
+                            {{ $onTrial ? 'Trial ends' : 'Valid until' }}:
+                            {{ optional($currentSubscription->currentPeriodEnd())->format('d M, Y') ?? 'N/A' }}
+                            <span class="ml-1 font-medium">({{ $currentSubscription->daysRemaining() }} days left)</span>
+                        </p>
                     </div>
-                @else
-                    <div class="bg-red-50 dark:bg-red-900/20 p-6 rounded-xl border border-red-100 dark:border-red-800">
-                        <p class="text-red-600 dark:text-red-400 font-bold">You do not have an active subscription.</p>
-                        <p class="text-sm text-red-500 dark:text-red-300 mt-1">Please select a plan below to continue using the software.</p>
-                    </div>
-                @endif
+                    <span class="badge {{ $onTrial ? 'badge-warning' : 'badge-success' }}">{{ $onTrial ? 'Trial' : 'Active' }}</span>
+                </div>
+            @else
+                <div class="rounded-xl border border-error/30 bg-error-container/40 p-5">
+                    <p class="font-bold text-on-error-container">You do not have an active subscription.</p>
+                    <p class="mt-1 text-sm text-on-error-container/80">Please select a plan below to continue using the software.</p>
+                </div>
+            @endif
+        </div>
+
+        <!-- Coupon -->
+        @if($couponsEnabled)
+            <div class="card card-pad">
+                <label for="coupon-code-input" class="section-title mb-2 block">Have a coupon?</label>
+                <div class="flex max-w-sm items-center gap-2">
+                    <input type="text" id="coupon-code-input" value="{{ old('coupon_code') }}" placeholder="Enter code (e.g. WELCOME20)"
+                           class="form-input font-mono uppercase" oninput="this.value = this.value.toUpperCase()">
+                </div>
+                @error('coupon_code')
+                    <p class="mt-2 text-sm text-error">{{ $message }}</p>
+                @enderror
+                <p class="mt-2 text-xs text-on-surface-variant">Your discount is applied when you click <strong>Subscribe Now</strong>.</p>
             </div>
+        @endif
 
-            <!-- Available Plans -->
-            <div>
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Available Plans</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    @foreach($plans as $plan)
-                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border {{ $currentSubscription && $currentSubscription->plan_id == $plan->id ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-100 dark:border-gray-700' }} overflow-hidden relative transition hover:shadow-lg">
+        <!-- Available Plans -->
+        <div>
+            <h3 class="section-title mb-4">Available Plans</h3>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                @foreach($plans as $plan)
+                    @php $isCurrent = $currentSubscription && $currentSubscription->plan_id == $plan->id; @endphp
+                    <div class="card relative overflow-hidden transition hover:shadow-md {{ $isCurrent ? 'ring-2 ring-primary' : '' }}">
                         @if($plan->name == 'Professional')
-                            <div class="absolute top-0 right-0 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wide">Most Popular</div>
+                            <div class="absolute right-0 top-0 rounded-bl-lg bg-primary px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-on-primary">Most Popular</div>
                         @endif
-                        <div class="p-8">
-                            <h4 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">{{ $plan->name }}</h4>
-                            <p class="text-gray-500 dark:text-gray-400 text-sm h-10">{{ $plan->description }}</p>
-                            
-                            <div class="mt-6 mb-8">
-                                <span class="text-4xl font-extrabold text-gray-900 dark:text-white">₹{{ number_format($plan->price_monthly) }}</span>
-                                <span class="text-gray-500 dark:text-gray-400">/mo</span>
+                        <div class="card-pad">
+                            <h4 class="text-xl font-bold text-on-surface">{{ $plan->name }}</h4>
+                            <p class="h-10 text-sm text-on-surface-variant">{{ $plan->description }}</p>
+
+                            <div class="mb-6 mt-5">
+                                <span class="text-3xl font-extrabold text-on-surface">₹{{ number_format($plan->price_monthly) }}</span>
+                                <span class="text-on-surface-variant">/mo</span>
                             </div>
 
-                            <ul class="space-y-4 mb-8 text-sm text-gray-600 dark:text-gray-300">
-                                <li class="flex items-center">
-                                    <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                    {{ $plan->max_users }} Users
+                            <ul class="mb-6 space-y-3 text-sm text-on-surface">
+                                <li class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[18px] text-tertiary">check_circle</span> {{ $plan->max_users }} Users
                                 </li>
-                                <li class="flex items-center">
-                                    <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                    {{ $plan->max_branches }} Branches
+                                <li class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[18px] text-tertiary">check_circle</span> {{ $plan->max_branches }} Branches
                                 </li>
-                                <li class="flex items-center">
-                                    <svg class="w-5 h-5 {{ $plan->api_access ? 'text-green-500' : 'text-gray-300 dark:text-gray-600' }} mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $plan->api_access ? 'M5 13l4 4L19 7' : 'M6 18L18 6M6 6l12 12' }}"></path></svg>
-                                    API Access
+                                <li class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[18px] {{ $plan->api_access ? 'text-tertiary' : 'text-outline-variant' }}">{{ $plan->api_access ? 'check_circle' : 'cancel' }}</span> API Access
                                 </li>
                             </ul>
 
@@ -75,49 +81,62 @@
                                 @csrf
                                 <input type="hidden" name="plan_id" value="{{ $plan->id }}">
                                 <input type="hidden" name="billing_cycle" value="monthly">
-                                <button type="submit" class="w-full py-3 px-4 rounded-xl font-bold transition-colors {{ $currentSubscription && $currentSubscription->plan_id == $plan->id ? 'bg-gray-100 text-gray-800 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white' }}" {{ $currentSubscription && $currentSubscription->plan_id == $plan->id ? 'disabled' : '' }}>
-                                    {{ $currentSubscription && $currentSubscription->plan_id == $plan->id ? 'Current Plan' : 'Subscribe Now' }}
+                                @if($couponsEnabled)
+                                    <input type="hidden" name="coupon_code" class="coupon-code-field" value="{{ old('coupon_code') }}">
+                                @endif
+                                <button type="submit" class="btn w-full {{ $isCurrent ? 'btn-outline cursor-not-allowed' : 'btn-primary' }}" {{ $isCurrent ? 'disabled' : '' }}>
+                                    {{ $isCurrent ? 'Current Plan' : 'Subscribe Now' }}
                                 </button>
                             </form>
                         </div>
                     </div>
-                    @endforeach
-                </div>
+                @endforeach
             </div>
+        </div>
 
-            <!-- Billing History -->
-            @if(isset($invoices) && $invoices->isNotEmpty())
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-8 border border-gray-100 dark:border-gray-700">
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Billing History</h3>
+        <!-- Billing History -->
+        @if(isset($invoices) && $invoices->isNotEmpty())
+            <div class="card overflow-hidden">
+                <div class="card-header"><h3 class="section-title">Billing History</h3></div>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full text-sm">
+                    <table class="table-saas">
                         <thead>
-                            <tr class="text-left text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">
-                                <th class="py-3 pr-4 font-semibold">Invoice</th>
-                                <th class="py-3 pr-4 font-semibold">Date</th>
-                                <th class="py-3 pr-4 font-semibold">Amount</th>
-                                <th class="py-3 pr-4 font-semibold">Status</th>
+                            <tr>
+                                <th>Invoice</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                        <tbody>
                             @foreach($invoices as $invoice)
-                            <tr class="text-gray-700 dark:text-gray-200">
-                                <td class="py-3 pr-4 font-mono">{{ $invoice->invoice_number }}</td>
-                                <td class="py-3 pr-4">{{ $invoice->created_at->format('d M, Y') }}</td>
-                                <td class="py-3 pr-4">₹{{ number_format($invoice->total, 2) }}</td>
-                                <td class="py-3 pr-4">
-                                    <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium
-                                        {{ $invoice->status === 'paid' ? 'bg-green-100 text-green-800' : ($invoice->status === 'failed' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800') }}">
-                                        {{ ucfirst($invoice->status) }}
-                                    </span>
-                                </td>
-                            </tr>
+                                <tr>
+                                    <td class="font-mono-data">{{ $invoice->invoice_number }}</td>
+                                    <td class="text-on-surface-variant">{{ $invoice->created_at->format('d M, Y') }}</td>
+                                    <td>₹{{ number_format($invoice->total, 2) }}</td>
+                                    <td>
+                                        <span class="badge {{ $invoice->status === 'paid' ? 'badge-success' : ($invoice->status === 'failed' ? 'badge-danger' : 'badge-neutral') }}">{{ ucfirst($invoice->status) }}</span>
+                                    </td>
+                                </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
             </div>
-            @endif
-        </div>
+        @endif
     </div>
+
+    @if($couponsEnabled)
+        <script>
+            // Keep every plan form's hidden coupon field in sync with the shared input.
+            (function () {
+                const input = document.getElementById('coupon-code-input');
+                if (!input) return;
+                const sync = () => document.querySelectorAll('.coupon-code-field')
+                    .forEach(field => field.value = input.value.trim());
+                input.addEventListener('input', sync);
+                sync();
+            })();
+        </script>
+    @endif
 </x-app-layout>

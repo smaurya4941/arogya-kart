@@ -20,6 +20,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role'         => App\Http\Middleware\RoleMiddleware::class,
             'subscription' => App\Http\Middleware\EnsureSubscriptionActive::class,
+            'admin.can'    => App\Http\Middleware\SuperAdminCapability::class,
+        ]);
+
+        // Platform-wide maintenance gate (Super Admin & auth screens exempt).
+        $middleware->web(append: [
+            App\Http\Middleware\EnforceMaintenanceMode::class,
         ]);
 
         // Razorpay posts webhooks server-to-server with no CSRF token; it is
