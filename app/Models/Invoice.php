@@ -14,11 +14,12 @@ class Invoice extends Model
 {
     use BelongsToPharmacy;
 
-    public const STATUS_PENDING  = 'pending';
-    public const STATUS_PAID     = 'paid';
-    public const STATUS_FAILED   = 'failed';
-    public const STATUS_REFUNDED = 'refunded';
-    public const STATUS_VOID     = 'void';
+    public const STATUS_PENDING        = 'pending';
+    public const STATUS_PAID           = 'paid';
+    public const STATUS_FAILED         = 'failed';
+    public const STATUS_REFUND_PENDING = 'refund_pending';
+    public const STATUS_REFUNDED       = 'refunded';
+    public const STATUS_VOID           = 'void';
 
     /** Statuses that count toward recognised revenue. */
     public const REVENUE_STATUSES = [self::STATUS_PAID];
@@ -33,15 +34,24 @@ class Invoice extends Model
         'status',
         'payment_method',
         'transaction_id',
+        'refund_id',
         'paid_at',
+        'refunded_at',
     ];
 
     protected $casts = [
-        'amount'  => 'decimal:2',
-        'tax'     => 'decimal:2',
-        'total'   => 'decimal:2',
-        'paid_at' => 'datetime',
+        'amount'      => 'decimal:2',
+        'tax'         => 'decimal:2',
+        'total'       => 'decimal:2',
+        'paid_at'     => 'datetime',
+        'refunded_at' => 'datetime',
     ];
+
+    /** A refund has been requested at the gateway but hasn't settled yet. */
+    public function isRefundPending(): bool
+    {
+        return $this->status === self::STATUS_REFUND_PENDING;
+    }
 
     public function subscription()
     {

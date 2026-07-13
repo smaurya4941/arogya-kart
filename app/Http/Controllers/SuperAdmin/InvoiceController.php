@@ -51,7 +51,7 @@ class InvoiceController extends Controller
         return view('superadmin.invoices.index', [
             'invoices'   => $invoices,
             'totals'     => $totals,
-            'statuses'   => [Invoice::STATUS_PENDING, Invoice::STATUS_PAID, Invoice::STATUS_FAILED, Invoice::STATUS_REFUNDED, Invoice::STATUS_VOID],
+            'statuses'   => [Invoice::STATUS_PENDING, Invoice::STATUS_PAID, Invoice::STATUS_FAILED, Invoice::STATUS_REFUND_PENDING, Invoice::STATUS_REFUNDED, Invoice::STATUS_VOID],
             'pharmacies' => Pharmacy::orderBy('name')->get(['id', 'name']),
         ]);
     }
@@ -118,9 +118,11 @@ class InvoiceController extends Controller
 
     /**
      * Refund a paid invoice. When the invoice was settled through Razorpay (a real
-     * `pay_…` transaction), the refund is pushed to the gateway first — the local
-     * status is only flipped if that succeeds, so records never claim a refund the
-     * gateway didn't make. Manual/dev invoices are simply marked refunded.
+     * `pay_…` transaction), the refund is created at the gateway and the invoice is
+     * moved to *refund_pending*: Razorpay refunds settle asynchronously, so the
+     * refund.processed / refund.failed webhook (BillingService::reconcileRefund)
+     * drives it to the final refunded/paid state. Manual/dev invoices have no
+     * gateway leg, so they're marked refunded immediately.
      */
     public function refund(Invoice $invoice)
     {
@@ -133,8 +135,6 @@ class InvoiceController extends Controller
             && is_string($paymentId)
             && str_starts_with($paymentId, 'pay_');
 
-        $refundId = null;
-
         if ($viaGateway) {
             if (! $this->razorpay->isConfigured()) {
                 return back()->with('error', 'Razorpay is not configured — cannot process a live refund.');
@@ -145,7 +145,6 @@ class InvoiceController extends Controller
                     'invoice_number' => $invoice->invoice_number,
                     'pharmacy_id'    => (string) $invoice->pharmacy_id,
                 ]);
-                $refundId = $refund['id'] ?? null;
             } catch (\Throwable $e) {
                 Log::error('Razorpay refund failed', [
                     'invoice_id' => $invoice->id,
@@ -155,20 +154,45 @@ class InvoiceController extends Controller
 
                 return back()->with('error', 'Refund failed at the payment gateway. The invoice was left unchanged.');
             }
+
+            $refundId = $refund['id'] ?? null;
+
+            // A refund can settle instantly (status "processed") — honour that;
+            // otherwise hold at refund_pending until the webhook confirms.
+            $settled = ($refund['status'] ?? null) === 'processed';
+
+            $invoice->update([
+                'status'      => $settled ? Invoice::STATUS_REFUNDED : Invoice::STATUS_REFUND_PENDING,
+                'refund_id'   => $refundId,
+                'refunded_at' => $settled ? now() : null,
+            ]);
+
+            $this->audit->log(auth()->user(), 'invoice_refund_initiated', $invoice, [
+                'invoice_number' => $invoice->invoice_number,
+                'total'          => $invoice->total,
+                'gateway'        => 'razorpay',
+                'refund_id'      => $refundId,
+                'status'         => $invoice->status,
+            ]);
+
+            return back()->with('success', $settled
+                ? "Invoice {$invoice->invoice_number} refunded via Razorpay ({$refundId})."
+                : "Refund initiated for {$invoice->invoice_number} ({$refundId}). It will show as refunded once Razorpay confirms.");
         }
 
-        $invoice->update(['status' => Invoice::STATUS_REFUNDED]);
+        // Manual/dev invoice — no gateway leg, settle locally.
+        $invoice->update([
+            'status'      => Invoice::STATUS_REFUNDED,
+            'refunded_at' => now(),
+        ]);
 
         $this->audit->log(auth()->user(), 'invoice_refunded', $invoice, [
             'invoice_number' => $invoice->invoice_number,
             'total'          => $invoice->total,
-            'gateway'        => $viaGateway ? 'razorpay' : 'manual',
-            'refund_id'      => $refundId,
+            'gateway'        => 'manual',
         ]);
 
-        return back()->with('success', $viaGateway
-            ? "Invoice {$invoice->invoice_number} refunded via Razorpay ({$refundId})."
-            : "Invoice {$invoice->invoice_number} marked refunded (no gateway payment on record).");
+        return back()->with('success', "Invoice {$invoice->invoice_number} marked refunded (no gateway payment on record).");
     }
 
     /** Stream the invoice as a PDF (inline). */

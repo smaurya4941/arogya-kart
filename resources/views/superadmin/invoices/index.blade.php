@@ -5,11 +5,12 @@
 @php
     use App\Models\Invoice;
     $badge = [
-        Invoice::STATUS_PAID     => 'badge-success',
-        Invoice::STATUS_PENDING  => 'badge-neutral',
-        Invoice::STATUS_FAILED   => 'badge-danger',
-        Invoice::STATUS_REFUNDED => 'badge-neutral',
-        Invoice::STATUS_VOID     => 'badge-danger',
+        Invoice::STATUS_PAID           => 'badge-success',
+        Invoice::STATUS_PENDING        => 'badge-neutral',
+        Invoice::STATUS_FAILED         => 'badge-danger',
+        Invoice::STATUS_REFUND_PENDING => 'badge-warning',
+        Invoice::STATUS_REFUNDED       => 'badge-neutral',
+        Invoice::STATUS_VOID           => 'badge-danger',
     ];
 @endphp
 
@@ -77,12 +78,12 @@
                             <td>{{ $invoice->pharmacy?->name ?? '—' }}</td>
                             <td class="text-on-surface-variant">{{ $invoice->subscription?->plan?->name ?? '—' }}</td>
                             <td class="text-right">₹{{ number_format($invoice->total, 2) }}</td>
-                            <td><span class="badge {{ $badge[$invoice->status] ?? 'badge-neutral' }}">{{ ucfirst($invoice->status) }}</span></td>
+                            <td><span class="badge {{ $badge[$invoice->status] ?? 'badge-neutral' }}">{{ ucfirst(str_replace('_', ' ', $invoice->status)) }}</span></td>
                             <td class="text-on-surface-variant">{{ $invoice->created_at->format('d M Y') }}</td>
                             <td class="text-right">
                                 <div class="inline-flex items-center gap-1">
                                     <a href="{{ route('superadmin.invoices.pdf', $invoice) }}" target="_blank" class="btn btn-xs btn-outline">PDF</a>
-                                    @if($invoice->status !== Invoice::STATUS_PAID && $invoice->status !== Invoice::STATUS_VOID && $invoice->status !== Invoice::STATUS_REFUNDED)
+                                    @if($invoice->status === Invoice::STATUS_PENDING || $invoice->status === Invoice::STATUS_FAILED)
                                         <form method="POST" action="{{ route('superadmin.invoices.mark-paid', $invoice) }}" class="inline">
                                             @csrf @method('PATCH')
                                             <button class="btn btn-xs bg-tertiary-container/15 text-tertiary hover:bg-tertiary-container/25">Mark paid</button>
@@ -94,10 +95,12 @@
                                         </form>
                                     @elseif($invoice->status === Invoice::STATUS_PAID)
                                         <form method="POST" action="{{ route('superadmin.invoices.refund', $invoice) }}" class="inline"
-                                              onsubmit="return confirm('Mark invoice {{ $invoice->invoice_number }} as refunded?')">
+                                              onsubmit="return confirm('Refund invoice {{ $invoice->invoice_number }}? For gateway payments this is submitted to Razorpay and settles asynchronously.')">
                                             @csrf @method('PATCH')
                                             <button class="btn btn-xs bg-error-container text-on-error-container hover:opacity-90">Refund</button>
                                         </form>
+                                    @elseif($invoice->status === Invoice::STATUS_REFUND_PENDING)
+                                        <span class="text-xs text-amber-700" title="Awaiting Razorpay confirmation">Refund pending…</span>
                                     @endif
                                 </div>
                             </td>

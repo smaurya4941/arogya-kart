@@ -182,6 +182,24 @@ class SubscriptionController extends Controller
             }
         }
 
+        // Refunds settle asynchronously; these events carry the real outcome. Also
+        // catches refunds started from the Razorpay dashboard (no local record yet).
+        if (in_array($event, ['refund.created', 'refund.processed', 'refund.failed'], true)) {
+            $entity = $payload['payload']['refund']['entity'] ?? [];
+
+            if (! empty($entity['id'])) {
+                $invoice = $this->billing->reconcileRefund($entity);
+
+                if (! $invoice) {
+                    Log::warning('Razorpay refund webhook: no matching invoice', [
+                        'event'      => $event,
+                        'refund_id'  => $entity['id'] ?? null,
+                        'payment_id' => $entity['payment_id'] ?? null,
+                    ]);
+                }
+            }
+        }
+
         return response()->json(['status' => 'ok']);
     }
 

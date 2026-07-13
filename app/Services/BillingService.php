@@ -94,6 +94,97 @@ class BillingService
         });
     }
 
+    /**
+     * Reconcile an invoice against a Razorpay refund entity (from a refund.*
+     * webhook, or the Razorpay dashboard). Refunds settle asynchronously, so this
+     * drives the invoice through refund_pending → refunded/paid as the gateway
+     * reports the real outcome. Idempotent and safe to call for repeated webhook
+     * deliveries; returns the affected invoice, or null when none matches.
+     *
+     * @param  array<string,mixed>  $refund  The `payload.refund.entity` object.
+     */
+    public function reconcileRefund(array $refund): ?Invoice
+    {
+        $refundId  = $refund['id'] ?? null;
+        $paymentId = $refund['payment_id'] ?? null;
+        $status    = $refund['status'] ?? null; // created | pending | processed | failed
+        $notes     = is_array($refund['notes'] ?? null) ? $refund['notes'] : [];
+
+        $invoice = $this->locateRefundInvoice($refundId, $paymentId, $notes);
+
+        if (! $invoice) {
+            return null;
+        }
+
+        $attributes = [];
+
+        // Keep the gateway refund id linked once we learn it (e.g. a refund started
+        // from the Razorpay dashboard that we hadn't recorded locally).
+        if ($refundId && $invoice->refund_id !== $refundId) {
+            $attributes['refund_id'] = $refundId;
+        }
+
+        switch ($status) {
+            case 'processed':
+                $attributes['status']      = Invoice::STATUS_REFUNDED;
+                $attributes['refunded_at'] = $invoice->refunded_at ?? now();
+                break;
+
+            case 'failed':
+                // The refund did not go through — the original payment stands, so the
+                // invoice returns to paid and can be retried.
+                $attributes['status']      = Invoice::STATUS_PAID;
+                $attributes['refunded_at'] = null;
+                break;
+
+            case 'created':
+            case 'pending':
+            default:
+                // Only a still-paid invoice moves to refund_pending; never clobber a
+                // terminal refunded/failed state with a late/duplicate pending event.
+                if ($invoice->status === Invoice::STATUS_PAID) {
+                    $attributes['status'] = Invoice::STATUS_REFUND_PENDING;
+                }
+                break;
+        }
+
+        if ($attributes !== []) {
+            $invoice->update($attributes);
+        }
+
+        return $invoice;
+    }
+
+    /**
+     * Find the invoice a refund belongs to, most-reliable signal first: the refund
+     * id we stored when initiating, then the invoice number we stamped in the
+     * refund notes, then the original payment id.
+     *
+     * @param  array<string,mixed>  $notes
+     */
+    private function locateRefundInvoice(?string $refundId, ?string $paymentId, array $notes): ?Invoice
+    {
+        if ($refundId) {
+            $byRefund = Invoice::withoutGlobalScopes()->where('refund_id', $refundId)->first();
+            if ($byRefund) {
+                return $byRefund;
+            }
+        }
+
+        if (! empty($notes['invoice_number'])) {
+            $byNumber = Invoice::withoutGlobalScopes()->where('invoice_number', $notes['invoice_number'])->first();
+            if ($byNumber) {
+                return $byNumber;
+            }
+        }
+
+        if ($paymentId) {
+            return Invoice::withoutGlobalScopes()->where('transaction_id', $paymentId)->first();
+        }
+
+        return null;
+    }
+
     private function periodEnd(string $billingCycle): Carbon
     {
         return $this->periodEndFrom(now(), $billingCycle);
