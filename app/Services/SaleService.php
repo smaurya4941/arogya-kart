@@ -147,7 +147,7 @@ class SaleService
         $productId = (int) $line['product_id'];
         $quantity = (int) $line['quantity'];
         $discountPct = round((float) ($line['discount_percentage'] ?? 0), 2);
-        $gstPct = $this->gstRateFor($productId);
+        $gstPct = round((float) ($line['tax_percentage'] ?? 0), 2);
 
         // FEFO: nearest expiry first, active + in-date + in-stock only. Locked so a
         // concurrent sale of the same batch waits for us to commit before reading.
@@ -182,7 +182,7 @@ class SaleService
             }
 
             $take = min((int) $batch->quantity, $remaining);
-            $unitPrice = (float) $batch->mrp;
+            $unitPrice = round((float) ($line['unit_price'] ?? $batch->mrp), 2);
 
             $base = round($unitPrice * $take * (1 - $discountPct / 100), 2);
             $tax = round($base * $gstPct / 100, 2);

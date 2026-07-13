@@ -1,37 +1,35 @@
-@extends('layouts.admin')
+<?php $__env->startSection('title', 'Point of Sale'); ?>
 
-@section('title', 'Point of Sale')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div x-data="pos({
-        searchUrl: '{{ route('admin.sales.search') }}',
-        preselectCustomer: '{{ request('customer_id') }}'
+        searchUrl: '<?php echo e(route('admin.sales.search')); ?>',
+        preselectCustomer: '<?php echo e(request('customer_id')); ?>'
      })"
      x-init="init()"
      @keydown.window.f2.prevent="$refs.search.focus()">
 
-    @if ($errors->any())
+    <?php if($errors->any()): ?>
         <div class="mb-4 rounded-lg border border-error/30 bg-error-container/40 p-3 text-sm text-on-error-container">
             <ul class="list-disc space-y-1 pl-5">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
+                <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <li><?php echo e($error); ?></li>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </ul>
         </div>
-    @endif
+    <?php endif; ?>
 
     <div class="page-header mb-4">
         <div>
             <h1 class="page-title">Point of Sale</h1>
             <p class="page-subtitle">Search a medicine (or press <kbd class="rounded border border-outline-variant/50 px-1">F2</kbd>), add to cart, take payment.</p>
         </div>
-        <a href="{{ route('admin.sales.index') }}" class="btn btn-outline">All Sales</a>
+        <a href="<?php echo e(route('admin.sales.index')); ?>" class="btn btn-outline">All Sales</a>
     </div>
 
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {{-- LEFT: search + cart --}}
+        
         <div class="space-y-4 lg:col-span-2">
-            {{-- Search box --}}
+            
             <div class="card card-pad relative">
                 <label class="form-label">Find medicine</label>
                 <input type="text" x-ref="search" x-model="term"
@@ -64,7 +62,7 @@
                    class="mt-2 text-xs text-on-surface-variant">No in-stock matches.</p>
             </div>
 
-            {{-- Cart --}}
+            
             <div class="card overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="table-saas">
@@ -89,9 +87,7 @@
                                             <span x-text="'in stock: ' + item.stock"></span>
                                         </p>
                                     </td>
-                                    <td>
-                                        <input type="number" min="0" step="0.01" x-model.number="item.price" class="form-input h-8 w-24">
-                                    </td>
+                                    <td>₹<span x-text="Number(item.price).toFixed(2)"></span></td>
                                     <td>
                                         <input type="number" min="1" :max="item.stock" x-model.number="item.qty"
                                                @input="clampQty(item)" class="form-input h-8 w-20">
@@ -100,9 +96,7 @@
                                         <input type="number" min="0" max="100" step="0.01" x-model.number="item.discount"
                                                class="form-input h-8 w-20">
                                     </td>
-                                    <td>
-                                        <input type="number" min="0" max="100" step="0.01" x-model.number="item.gst" class="form-input h-8 w-16">
-                                    </td>
+                                    <td class="text-on-surface-variant" x-text="Number(item.gst).toFixed(0)"></td>
                                     <td class="text-right font-medium">₹<span x-text="lineTotal(item).toFixed(2)"></span></td>
                                     <td>
                                         <button type="button" @click="removeItem(i)" class="btn-icon hover:text-error">✕</button>
@@ -123,11 +117,11 @@
             </div>
         </div>
 
-        {{-- RIGHT: checkout --}}
+        
         <div class="space-y-4">
-            <form method="POST" action="{{ route('admin.sales.store') }}" @submit="prepare($event)"
+            <form method="POST" action="<?php echo e(route('admin.sales.store')); ?>" @submit="prepare($event)"
                   class="card card-pad space-y-4">
-                @csrf
+                <?php echo csrf_field(); ?>
                 <input type="hidden" name="items_json" x-ref="itemsJson">
                 <input type="hidden" name="action" x-ref="action">
 
@@ -135,13 +129,14 @@
                     <label class="form-label">Customer</label>
                     <select name="customer_id" x-model="customerId" class="form-select">
                         <option value="">Walk-in customer</option>
-                        @foreach ($customers as $customer)
-                            <option value="{{ $customer->id }}">
-                                {{ $customer->name }}{{ $customer->phone ? ' — '.$customer->phone : '' }}
+                        <?php $__currentLoopData = $customers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $customer): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($customer->id); ?>">
+                                <?php echo e($customer->name); ?><?php echo e($customer->phone ? ' — '.$customer->phone : ''); ?>
+
                             </option>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>
-                    <a href="{{ route('admin.customers.create') }}" target="_blank"
+                    <a href="<?php echo e(route('admin.customers.create')); ?>" target="_blank"
                        class="mt-1 inline-block text-xs font-medium text-primary hover:underline">+ Add new customer</a>
                 </div>
 
@@ -283,12 +278,12 @@
                     product_id: i.id,
                     quantity: i.qty,
                     discount_percentage: i.discount || 0,
-                    unit_price: i.price || 0,
-                    tax_percentage: i.gst || 0,
                 })));
                 this.$refs.action.value = this.actionType;
             },
         };
     }
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\sachi\Desktop\arogya-kart\arogya-kart\resources\views/admin/sales/create.blade.php ENDPATH**/ ?>

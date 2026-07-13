@@ -147,7 +147,7 @@ class SaleController extends Controller
                 'sku' => $product->sku,
                 'stock' => $available,
                 'price' => $nearest ? (float) $nearest->mrp : 0,
-                'gst' => $this->sales->gstRateFor($product->id),
+                'gst' => 0,
                 'nearest_expiry' => $nearest?->expiry_date?->toDateString(),
                 'generic_name' => $product->generic_name,
                 'storage_conditions' => $product->storage_conditions,
