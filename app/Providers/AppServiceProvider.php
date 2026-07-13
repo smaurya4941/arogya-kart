@@ -81,7 +81,7 @@ class AppServiceProvider extends ServiceProvider
             }
         } catch (\Throwable $e) {
             // Never let a settings-store hiccup take down the whole app boot.
-            Log::warning('Platform settings config bridge skipped: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('Platform settings config bridge skipped: ' . $e->getMessage());
         }
 
         /*
