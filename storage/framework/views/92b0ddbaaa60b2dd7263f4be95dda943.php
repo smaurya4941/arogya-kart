@@ -87,7 +87,9 @@
                                             <span x-text="'in stock: ' + item.stock"></span>
                                         </p>
                                     </td>
-                                    <td>₹<span x-text="Number(item.price).toFixed(2)"></span></td>
+                                    <td>
+                                        <input type="number" min="0" step="0.01" x-model.number="item.price" class="form-input h-8 w-24">
+                                    </td>
                                     <td>
                                         <input type="number" min="1" :max="item.stock" x-model.number="item.qty"
                                                @input="clampQty(item)" class="form-input h-8 w-20">
@@ -96,7 +98,9 @@
                                         <input type="number" min="0" max="100" step="0.01" x-model.number="item.discount"
                                                class="form-input h-8 w-20">
                                     </td>
-                                    <td class="text-on-surface-variant" x-text="Number(item.gst).toFixed(0)"></td>
+                                    <td>
+                                        <input type="number" min="0" max="100" step="0.01" x-model.number="item.gst" class="form-input h-8 w-16">
+                                    </td>
                                     <td class="text-right font-medium">₹<span x-text="lineTotal(item).toFixed(2)"></span></td>
                                     <td>
                                         <button type="button" @click="removeItem(i)" class="btn-icon hover:text-error">✕</button>
@@ -278,6 +282,8 @@
                     product_id: i.id,
                     quantity: i.qty,
                     discount_percentage: i.discount || 0,
+                    unit_price: i.price || 0,
+                    tax_percentage: i.gst || 0,
                 })));
                 this.$refs.action.value = this.actionType;
             },

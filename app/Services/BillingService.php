@@ -9,6 +9,7 @@ use App\Models\Plan;
 use App\Models\Subscription;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Turns a successful payment into an active subscription + a paid invoice.
@@ -88,7 +89,16 @@ class BillingService
             ]);
 
             // Record the redemption once, inside the same transaction as the invoice.
-            $coupon?->redeem();
+            // redeem() enforces the cap atomically; if a concurrent checkout claimed
+            // the last slot, the payment here was still captured at the discounted
+            // price, so we honour the discount but log the over-cap race.
+            if ($coupon && ! $coupon->redeem()) {
+                Log::warning('Coupon redemption cap reached during activation; discount honoured for captured payment.', [
+                    'coupon'         => $coupon->code,
+                    'pharmacy_id'    => $pharmacy->id,
+                    'transaction_id' => $paymentId,
+                ]);
+            }
 
             return $subscription;
         });

@@ -77,6 +77,22 @@ class DashboardController extends Controller
         $recentSales = Sale::with(['customer', 'cashier'])->latest()->take(5)->get();
         $recentPurchases = PurchaseInvoice::with('supplier')->latest()->take(5)->get();
 
+        // Graph Data: Last 7 Days Sales
+        $last7Days = collect();
+        for ($i = 6; $i >= 0; $i--) {
+            $date = now()->subDays($i)->format('Y-m-d');
+            $sales = Sale::whereDate('created_at', $date)->sum('total_amount');
+            $last7Days->push(['date' => now()->subDays($i)->format('D'), 'sales' => $sales]);
+        }
+        
+        // Graph Data: Last 30 Days Sales
+        $last30Days = collect();
+        for ($i = 29; $i >= 0; $i--) {
+            $date = now()->subDays($i)->format('Y-m-d');
+            $sales = Sale::whereDate('created_at', $date)->sum('total_amount');
+            $last30Days->push(['date' => now()->subDays($i)->format('d M'), 'sales' => $sales]);
+        }
+
         return compact(
             'totalMedicinesCount',
             'activeMedicines',
@@ -92,7 +108,9 @@ class DashboardController extends Controller
             'monthlyExpenses',
             'netProfit',
             'recentSales',
-            'recentPurchases'
+            'recentPurchases',
+            'last7Days',
+            'last30Days'
         );
     }
 

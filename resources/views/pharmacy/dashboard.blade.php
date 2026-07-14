@@ -11,6 +11,31 @@
             'meta' => ($todayInvoices ?? 0).' orders',
         ],
         [
+            'label' => 'Monthly Revenue', 'icon' => 'account_balance_wallet', 'tone' => 'text-emerald-600 bg-emerald-100',
+            'value' => '₹'.number_format($monthlyRevenue ?? 0, 2),
+            'meta' => 'This month',
+        ],
+        [
+            'label' => 'Net Profit', 'icon' => 'trending_up', 'tone' => 'text-blue-600 bg-blue-100',
+            'value' => '₹'.number_format($netProfit ?? 0, 2),
+            'meta' => 'This month',
+        ],
+        [
+            'label' => 'Monthly Expenses', 'icon' => 'money_off', 'tone' => 'text-rose-600 bg-rose-100',
+            'value' => '₹'.number_format($monthlyExpenses ?? 0, 2),
+            'meta' => 'This month',
+        ],
+        [
+            'label' => 'Total Medicines', 'icon' => 'medication', 'tone' => 'text-tertiary bg-tertiary/10',
+            'value' => str_pad($totalMedicinesCount ?? 0, 2, '0', STR_PAD_LEFT),
+            'meta' => 'Active: '.($activeMedicines ?? 0),
+        ],
+        [
+            'label' => "Items Sold Today", 'icon' => 'shopping_bag', 'tone' => 'text-indigo-600 bg-indigo-100',
+            'value' => str_pad($todayItemsSold ?? 0, 2, '0', STR_PAD_LEFT),
+            'meta' => 'Total quantity',
+        ],
+        [
             'label' => 'Low Stock', 'icon' => 'inventory', 'tone' => 'text-secondary bg-secondary/10',
             'value' => str_pad($lowStockCount ?? 0, 2, '0', STR_PAD_LEFT),
             'meta' => ($lowStockCount ?? 0) > 0 ? 'Needs attention' : 'Healthy',
@@ -19,11 +44,6 @@
             'label' => 'Expiring Soon', 'icon' => 'event_busy', 'tone' => 'text-error bg-error-container/40',
             'value' => str_pad($expiringCount ?? 0, 2, '0', STR_PAD_LEFT),
             'meta' => 'Next 90 days',
-        ],
-        [
-            'label' => 'Total Medicines', 'icon' => 'medication', 'tone' => 'text-tertiary bg-tertiary/10',
-            'value' => str_pad($totalMedicinesCount ?? 0, 2, '0', STR_PAD_LEFT),
-            'meta' => 'Active: '.($activeMedicines ?? 0),
         ],
     ];
 @endphp
@@ -68,29 +88,19 @@
     <!-- Main grid -->
     <div class="grid grid-cols-12 gap-4">
         <!-- Sales overview -->
-        <div class="card col-span-12 lg:col-span-8">
+        <div class="card col-span-12 lg:col-span-8" x-data="salesChart()">
             <div class="card-header">
                 <div>
                     <h4 class="section-title">Sales Overview</h4>
-                    <p class="text-xs text-on-surface-variant">Weekly distribution</p>
+                    <p class="text-xs text-on-surface-variant" x-text="timeframe === '7days' ? 'Weekly distribution' : 'Monthly distribution'">Weekly distribution</p>
                 </div>
                 <div class="flex gap-1 rounded-lg bg-surface-container-low p-0.5">
-                    <button class="rounded-md bg-white px-2.5 py-1 text-xs font-semibold text-primary shadow-sm">7 Days</button>
-                    <button class="rounded-md px-2.5 py-1 text-xs font-medium text-on-surface-variant hover:bg-white/60">Month</button>
+                    <button @click="setTimeframe('7days')" :class="timeframe === '7days' ? 'bg-white text-primary shadow-sm' : 'text-on-surface-variant hover:bg-white/60'" class="rounded-md px-2.5 py-1 text-xs font-semibold transition-colors">7 Days</button>
+                    <button @click="setTimeframe('30days')" :class="timeframe === '30days' ? 'bg-white text-primary shadow-sm' : 'text-on-surface-variant hover:bg-white/60'" class="rounded-md px-2.5 py-1 text-xs font-medium transition-colors">Month</button>
                 </div>
             </div>
-            <div class="card-pad">
-                <div class="flex h-52 items-end justify-between gap-2 sm:gap-4">
-                    @php $heights = [60, 45, 75, 90, 55, 85, 100]; $days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']; @endphp
-                    @foreach($heights as $i => $h)
-                        <div class="flex flex-1 flex-col items-center gap-2">
-                            <div class="group relative w-full overflow-hidden rounded-t-md bg-primary/15" style="height: {{ $h }}%">
-                                <div class="absolute bottom-0 w-full bg-primary transition-all duration-500 group-hover:h-full" style="height: 80%"></div>
-                            </div>
-                            <span class="text-[10px] font-medium text-on-surface-variant">{{ $days[$i] }}</span>
-                        </div>
-                    @endforeach
-                </div>
+            <div class="card-pad" style="height: 300px;">
+                <div id="salesChart" class="w-full h-full"></div>
             </div>
         </div>
 
@@ -193,3 +203,96 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('salesChart', () => ({
+            timeframe: '7days',
+            chart: null,
+            data7Days: @json($last7Days ?? []),
+            data30Days: @json($last30Days ?? []),
+
+            init() {
+                setTimeout(() => {
+                    this.renderChart();
+                }, 100);
+            },
+
+            setTimeframe(tf) {
+                this.timeframe = tf;
+                this.updateChart();
+            },
+
+            getChartOptions() {
+                const data = this.timeframe === '7days' ? this.data7Days : this.data30Days;
+                return {
+                    series: [{
+                        name: 'Sales',
+                        data: data.map(item => item.sales)
+                    }],
+                    chart: {
+                        type: 'area',
+                        height: 280,
+                        toolbar: { show: false },
+                        zoom: { enabled: false },
+                        fontFamily: 'inherit'
+                    },
+                    colors: ['#0f766e'], // primary color (teal-700 approx)
+                    fill: {
+                        type: 'gradient',
+                        gradient: {
+                            shadeIntensity: 1,
+                            opacityFrom: 0.4,
+                            opacityTo: 0.05,
+                            stops: [0, 90, 100]
+                        }
+                    },
+                    dataLabels: { enabled: false },
+                    stroke: { curve: 'smooth', width: 2 },
+                    xaxis: {
+                        categories: data.map(item => item.date),
+                        axisBorder: { show: false },
+                        axisTicks: { show: false },
+                        labels: {
+                            style: { colors: '#64748b', fontSize: '12px' }
+                        }
+                    },
+                    yaxis: {
+                        labels: {
+                            formatter: (value) => { return '₹' + parseFloat(value).toFixed(0) },
+                            style: { colors: '#64748b', fontSize: '12px' }
+                        }
+                    },
+                    grid: {
+                        borderColor: '#e2e8f0',
+                        strokeDashArray: 4,
+                        yaxis: { lines: { show: true } }
+                    },
+                    tooltip: { theme: 'light' }
+                };
+            },
+
+            renderChart() {
+                if (this.chart) {
+                    this.chart.destroy();
+                }
+                this.chart = new ApexCharts(document.querySelector("#salesChart"), this.getChartOptions());
+                this.chart.render();
+            },
+
+            updateChart() {
+                const data = this.timeframe === '7days' ? this.data7Days : this.data30Days;
+                this.chart.updateOptions({
+                    xaxis: { categories: data.map(item => item.date) }
+                });
+                this.chart.updateSeries([{
+                    name: 'Sales',
+                    data: data.map(item => item.sales)
+                }]);
+            }
+        }));
+    });
+</script>
+@endpush

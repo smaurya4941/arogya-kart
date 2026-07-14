@@ -222,6 +222,7 @@
             });
         });
     </script>
+    <?php echo $__env->yieldPushContent('scripts'); ?>
 </body>
 </html>
 <?php /**PATH C:\Users\sachi\Desktop\arogya-kart\arogya-kart\resources\views/layouts/app.blade.php ENDPATH**/ ?>

@@ -112,4 +112,64 @@ class SaleWorkflowTest extends TestCase
             ],
         ]);
     }
+
+    public function test_sale_is_blocked_when_selling_above_batch_mrp(): void
+    {
+        $this->actingAsPharmacyAdmin();
+
+        $product = Product::create([
+            'name' => 'Paracetamol 650mg',
+            'sku' => 'PCM-650',
+            'description' => null,
+        ]);
+
+        ProductBatch::create([
+            'product_id' => $product->id,
+            'batch_number' => 'BATCH-C',
+            'expiry_date' => now()->addYear(),
+            'purchase_price' => 8.00,
+            'mrp' => 12.00,
+            'quantity' => 50,
+        ]);
+
+        // Selling above the printed MRP is illegal — the whole sale must be rejected.
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+
+        app(SaleService::class)->createSale([
+            'payment_method' => 'cash',
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 15.00],
+            ],
+        ]);
+    }
+
+    public function test_sale_at_exactly_mrp_is_allowed(): void
+    {
+        $this->actingAsPharmacyAdmin();
+
+        $product = Product::create([
+            'name' => 'Ibuprofen 400mg',
+            'sku' => 'IBU-400',
+            'description' => null,
+        ]);
+
+        ProductBatch::create([
+            'product_id' => $product->id,
+            'batch_number' => 'BATCH-D',
+            'expiry_date' => now()->addYear(),
+            'purchase_price' => 6.00,
+            'mrp' => 9.00,
+            'quantity' => 20,
+        ]);
+
+        // Selling exactly at MRP is legal and must go through.
+        $sale = app(SaleService::class)->createSale([
+            'payment_method' => 'cash',
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 2, 'unit_price' => 9.00],
+            ],
+        ]);
+
+        $this->assertSame(18.0, (float) $sale->total_amount); // 2 × 9.00, 0% GST
+    }
 }

@@ -184,6 +184,23 @@ class SaleService
             $take = min((int) $batch->quantity, $remaining);
             $unitPrice = round((float) ($line['unit_price'] ?? $batch->mrp), 2);
 
+            // MRP cap: it is illegal (Drugs & Cosmetics Act / Legal Metrology) to
+            // sell a medicine above the MRP printed on that batch's strip. The POS
+            // must never let the till override the price upward, so we reject the
+            // whole sale server-side rather than silently clamping.
+            $batchMrp = round((float) $batch->mrp, 2);
+            if ($unitPrice > $batchMrp) {
+                $name = optional($batch->product)->name
+                    ?? \App\Models\Product::find($productId)?->name
+                    ?? "product #{$productId}";
+
+                throw ValidationException::withMessages([
+                    'items' => "Selling price for {$name} (₹" . number_format($unitPrice, 2)
+                        . ") exceeds the batch MRP of ₹" . number_format($batchMrp, 2)
+                        . ". You cannot sell above the printed MRP.",
+                ]);
+            }
+
             $base = round($unitPrice * $take * (1 - $discountPct / 100), 2);
             $tax = round($base * $gstPct / 100, 2);
 

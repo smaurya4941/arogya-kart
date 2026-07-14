@@ -60,9 +60,33 @@ class Coupon extends Model
         return round(min($discount, $amount), 2);
     }
 
-    /** Atomically record a redemption. */
-    public function redeem(): void
+    /**
+     * Atomically record a redemption, enforcing max_redemptions under concurrency.
+     *
+     * The increment is a single conditional UPDATE — the WHERE `redeemed_count <
+     * max_redemptions` is evaluated by the database while it holds the row's write
+     * lock, so two simultaneous checkouts can never push the count past the cap
+     * (the loser's UPDATE matches zero rows). isRedeemable() is only a friendly
+     * pre-payment check; this is the hard guarantee.
+     *
+     * @return bool True if a redemption slot was claimed; false if the cap was
+     *              already reached (caller decides how to handle an over-cap race).
+     */
+    public function redeem(): bool
     {
-        $this->increment('redeemed_count');
+        $query = static::query()->whereKey($this->getKey());
+
+        // Uncapped coupons always succeed; capped ones only while a slot remains.
+        if ($this->max_redemptions !== null) {
+            $query->whereColumn('redeemed_count', '<', 'max_redemptions');
+        }
+
+        $claimed = $query->increment('redeemed_count') > 0;
+
+        if ($claimed) {
+            $this->redeemed_count = (int) $this->redeemed_count + 1;
+        }
+
+        return $claimed;
     }
 }

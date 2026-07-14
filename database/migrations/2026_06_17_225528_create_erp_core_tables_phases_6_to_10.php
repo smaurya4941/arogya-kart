@@ -126,27 +126,11 @@ return new class extends Migration
         });
 
         // PHASE 9: Sales Return
-        Schema::create('sale_returns', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('pharmacy_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('sale_id')->constrained()->cascadeOnDelete();
-            $table->string('return_number');
-            $table->dateTime('return_date');
-            $table->string('refund_method');
-            $table->decimal('refund_amount', 12, 2)->default(0);
-            $table->text('reason')->nullable();
-            $table->timestamps();
-        });
-
-        Schema::create('sale_return_items', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('sale_return_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('sale_item_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
-            $table->integer('quantity');
-            $table->decimal('refund_amount', 12, 2);
-            $table->timestamps();
-        });
+        // NOTE: The sale_returns / sale_return_items tables are created by the
+        // later, canonical migration 2026_07_07_000003_create_sale_returns_tables.
+        // The stub that once lived here was superseded (it used a different
+        // schema) and has been removed so a fresh `migrate` does not attempt to
+        // create these tables twice. See that migration for the live schema.
 
         // PHASE 10: Expenses & Accounting
         Schema::create('expense_categories', function (Blueprint $table) {
@@ -185,8 +169,8 @@ return new class extends Migration
         Schema::dropIfExists('payments');
         Schema::dropIfExists('expenses');
         Schema::dropIfExists('expense_categories');
-        Schema::dropIfExists('sale_return_items');
-        Schema::dropIfExists('sale_returns');
+        // sale_return_items / sale_returns are dropped by their own migration
+        // (2026_07_07_000003), which owns those tables.
         Schema::dropIfExists('sale_items');
         Schema::dropIfExists('sales');
         Schema::dropIfExists('purchase_returns');

@@ -12,6 +12,10 @@ class ProfileTest extends TestCase
 
     public function test_profile_page_is_displayed(): void
     {
+        // The profile page renders the app layout, which gates nav items with
+        // @can(...); those permissions must exist as they do in a real deployment.
+        $this->seedRolesAndPermissions();
+
         $user = User::factory()->create();
 
         $response = $this

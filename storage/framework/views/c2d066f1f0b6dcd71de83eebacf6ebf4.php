@@ -250,12 +250,12 @@
 <section class="bg-surface-container-low border-b border-outline-variant py-md">
 <div class="max-w-container-max mx-auto px-lg flex flex-wrap justify-between items-center gap-md">
 <div class="flex items-center gap-md">
-<span class="text-headline-lg font-display text-primary">2k+</span>
+<span class="text-headline-lg font-display text-primary"><?php echo e($activePharmaciesCountStr ?: '0'); ?></span>
 <span class="text-body-sm text-on-surface-variant font-label-md uppercase tracking-wider">Active Pharmacies</span>
 </div>
 <div class="w-px h-8 bg-outline-variant hidden md:block"></div>
 <div class="flex items-center gap-md">
-<span class="text-headline-lg font-display text-primary">1M+</span>
+<span class="text-headline-lg font-display text-primary"><?php echo e($invoicesCountStr ?: '0'); ?></span>
 <span class="text-body-sm text-on-surface-variant font-label-md uppercase tracking-wider">Processed Invoices</span>
 </div>
 <div class="w-px h-8 bg-outline-variant hidden md:block"></div>
@@ -361,89 +361,52 @@
 <p class="text-on-surface-variant text-body-md">Predictable monthly costs with no hidden implementation fees.</p>
 </div>
 <div class="grid grid-cols-1 md:grid-cols-3 gap-lg max-w-5xl mx-auto">
-<!-- Starter -->
-<div class="bg-white border border-outline-variant p-lg flex flex-col gap-md">
-<div>
-<h3 class="font-headline-md text-headline-md text-on-surface">Starter</h3>
-<div class="mt-xs flex items-baseline gap-1">
-<span class="text-display font-display text-primary">$49</span>
-<span class="text-body-sm text-on-surface-variant">/month</span>
-</div>
-</div>
-<ul class="flex flex-col gap-sm flex-grow">
-<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
-<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
-                                Single Branch Support
-                            </li>
-<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
-<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
-                                Up to 5,000 SKUs
-                            </li>
-<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
-<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
-                                Basic Reporting
-                            </li>
-</ul>
-<a href="<?php echo e($ctaUrl); ?>" class="w-full h-8 border border-outline-variant font-label-md hover:bg-surface-container transition-colors flex items-center justify-center">Select Plan</a>
-</div>
-<!-- Professional -->
-<div class="bg-white border-2 border-primary p-lg flex flex-col gap-md relative">
+<?php $__currentLoopData = $plans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $plan): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+<div class="bg-white border <?php echo e($loop->iteration == 2 ? 'border-2 border-primary' : 'border-outline-variant'); ?> p-lg flex flex-col gap-md relative">
+<?php if($loop->iteration == 2): ?>
 <div class="absolute top-0 right-lg -translate-y-1/2 bg-primary text-on-primary px-sm py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">Most Popular</div>
+<?php endif; ?>
 <div>
-<h3 class="font-headline-md text-headline-md text-on-surface">Professional</h3>
+<h3 class="font-headline-md text-headline-md text-on-surface"><?php echo e($plan->name); ?></h3>
 <div class="mt-xs flex items-baseline gap-1">
-<span class="text-display font-display text-primary">$129</span>
-<span class="text-body-sm text-on-surface-variant">/month</span>
-</div>
-</div>
-<ul class="flex flex-col gap-sm flex-grow">
-<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
-<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
-                                Up to 5 Branches
-                            </li>
-<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
-<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
-                                Unlimited SKUs
-                            </li>
-<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
-<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
-                                Advanced AI Forecasting
-                            </li>
-<li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
-<span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
-                                Supplier Integration APIs
-                            </li>
-</ul>
-<a href="<?php echo e($ctaUrl); ?>" class="w-full h-8 bg-primary text-on-primary font-label-md hover:brightness-110 transition-all shadow-md flex items-center justify-center">Select Plan</a>
-</div>
-<!-- Enterprise -->
-<div class="bg-white border border-outline-variant p-lg flex flex-col gap-md">
-<div>
-<h3 class="font-headline-md text-headline-md text-on-surface">Enterprise</h3>
-<div class="mt-xs flex items-baseline gap-1">
+<?php if(empty($plan->price_monthly) || $plan->price_monthly == 0): ?>
 <span class="text-headline-lg font-display text-primary">Custom</span>
+<?php else: ?>
+<span class="text-display font-display text-primary">₹<?php echo e(rtrim(rtrim((string) $plan->price_monthly, '0'), '.')); ?></span>
+<span class="text-body-sm text-on-surface-variant">/month</span>
+<?php endif; ?>
 </div>
 </div>
 <ul class="flex flex-col gap-sm flex-grow">
 <li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
 <span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
-                                Unlimited Branches
-                            </li>
+    <?php echo e($plan->max_branches == -1 || $plan->max_branches > 999 ? 'Unlimited Branches' : ($plan->max_branches == 1 ? 'Single Branch' : 'Up to ' . $plan->max_branches . ' Branches')); ?>
+
+</li>
 <li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
 <span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
-                                Dedicated Account Manager
-                            </li>
+    <?php echo e($plan->max_users == -1 || $plan->max_users > 999 ? 'Unlimited Users' : 'Up to ' . $plan->max_users . ' Users'); ?>
+
+</li>
+<?php if($plan->api_access): ?>
 <li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
 <span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
-                                On-Premise Cloud Hybrid
-                            </li>
+    API Access
+</li>
+<?php endif; ?>
+<?php if(is_array($plan->features)): ?>
+<?php $__currentLoopData = $plan->features; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $feature): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 <li class="flex items-center gap-xs text-body-sm text-on-surface-variant">
 <span class="material-symbols-outlined text-primary !text-[16px]">check_circle</span>
-                                SSO &amp; Audit Logs
-                            </li>
+    <?php echo e($feature); ?>
+
+</li>
+<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+<?php endif; ?>
 </ul>
-<a href="#contact" class="w-full h-8 border border-outline-variant font-label-md hover:bg-surface-container transition-colors flex items-center justify-center">Contact Sales</a>
+<a href="<?php echo e(empty($plan->price_monthly) || $plan->price_monthly == 0 ? '#contact' : $ctaUrl); ?>" class="w-full h-8 <?php echo e($loop->iteration == 2 ? 'bg-primary text-on-primary shadow-md hover:brightness-110' : 'border border-outline-variant hover:bg-surface-container text-on-surface'); ?> font-label-md transition-all flex items-center justify-center"><?php echo e(empty($plan->price_monthly) || $plan->price_monthly == 0 ? 'Contact Sales' : 'Select Plan'); ?></a>
 </div>
+<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 </div>
 </div>
 </section>
